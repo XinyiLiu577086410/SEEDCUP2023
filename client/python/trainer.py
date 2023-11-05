@@ -28,14 +28,7 @@ import torch.nn.functional as F
 gContext = {
     "playerID": -1,
     "gameOverFlag": False,
-    "prompt": (
-        "Take actions!\n"
-        "'w': move up\n"
-        "'s': move down\n"
-        "'a': move left\n"
-        "'d': move right\n"
-        "'blank': place bomb\n"
-    ),
+    "result": 0,
     "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
     "gameBeginFlag": False,
 }
@@ -140,8 +133,8 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Game Finished")
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = "cpu"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = "cpu"
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
@@ -150,8 +143,14 @@ def getState(resp : PacketResp):
         if len(map.objs):
             for obj in map.objs:
                 if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-                    return [obj.property.hp, map.x, map.y, obj.property.bomb_range, obj.property.shield_time, obj.property.invincible_time]
-    raise Exception("Invalid State")
+                    state = [obj.property.hp, obj.property.bomb_range, obj.property.shield_time, obj.property.invincible_time]
+    for map in resp.data.map:
+        if len(map.objs):
+            state.append(map.objs[0].type)
+        else:
+            state.append(0)
+    return state
+    # raise Exception("Invalid State")
 
 def calcReward(resp1 : PacketResp, resp2 : PacketResp):
     score1 = 0
@@ -168,9 +167,11 @@ def calcReward(resp1 : PacketResp, resp2 : PacketResp):
                     if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
                         score2 = obj.property.score
     else:
-        for score in resp2.data.scores:
-            if score["player_id"] == gContext["playerID"]:
-                score2 = score["score"]
+        for res in resp2.data.scores:
+            if res["player_id"] == gContext["playerID"]:
+                score2 = res["score"]
+                gContext["result"] = res["score"]
+
     return score2-score1
 
 class ReplayMemory(object):
@@ -212,9 +213,9 @@ TAU = 0.005
 LR = 1e-4
 
 # Get number of actions 
-n_actions = 5
+n_actions = 6
 # Get the number of state observations
-n_observations = 6
+n_observations = 4 + 225
 
 policy_net = DQN(n_observations, n_actions).to(device)
 target_net = DQN(n_observations, n_actions).to(device)
@@ -350,4 +351,5 @@ if __name__ == "__main__":
             target_net.load_state_dict(target_net_state_dict)
 
         gContext["gameOverFlag"] = False
-        print(f"Training {i_episode} finished")
+        client.close()
+        print(f"Training {i_episode} result {gContext['result']}")
