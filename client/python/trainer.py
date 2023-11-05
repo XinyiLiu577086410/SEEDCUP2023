@@ -106,7 +106,7 @@ class Client(object):
 
 def cliGetInitReq():
     """Get init request from user input."""
-    return InitReq(config.get("DQN"))
+    return InitReq(config.get("player_name"))
 
 
 def recvAndRefresh(ui: UI, client: Client):
@@ -140,13 +140,38 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Game Finished")
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-def getState():
-    pass
+def getState(resp : PacketResp):
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                    return [obj.property.hp, map.x, map.y, obj.property.bomb_range, obj.property.shield_time, obj.property.invincible_time]
+    raise Exception("Invalid State")
+
+def calcReward(resp1 : PacketResp, resp2 : PacketResp):
+    score1 = 0
+    score2 = 0
+    for map in resp1.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                    score1 = obj.property.score
+    if resp2.type != PacketType.GameOver:
+        for map in resp2.data.map:
+            if len(map.objs):
+                for obj in map.objs:
+                    if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                        score2 = obj.property.score
+    else:
+        for score in resp2.data.scores:
+            if score["player_id"] == gContext["playerID"]:
+                score2 = score["score"]
+    return score2-score1
 
 class ReplayMemory(object):
 
@@ -178,13 +203,6 @@ class DQN(nn.Module):
         x = F.relu(self.layer2(x))
         return self.layer3(x)
 
-# BATCH_SIZE is the number of transitions sampled from the replay buffer
-# GAMMA is the discount factor as mentioned in the previous section
-# EPS_START is the starting value of epsilon
-# EPS_END is the final value of epsilon
-# EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
-# TAU is the update rate of the target network
-# LR is the learning rate of the ``AdamW`` optimizer
 BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
@@ -194,10 +212,9 @@ TAU = 0.005
 LR = 1e-4
 
 # Get number of actions 
-n_actions = len(ActionType)
+n_actions = 5
 # Get the number of state observations
-state = getState()
-n_observations = len(state)
+n_observations = 6
 
 policy_net = DQN(n_observations, n_actions).to(device)
 target_net = DQN(n_observations, n_actions).to(device)
@@ -221,7 +238,7 @@ def select_action(state):
             # found, so we pick action with the larger expected reward.
             return policy_net(state).max(1)[1].view(1, 1)
     else:
-        return torch.tensor([[random.choice(ActionType)]], device=device, dtype=torch.long)
+        return torch.tensor([[random.randint(0,5)]], device=device, dtype=torch.long)
 
 def optimize_model():
     if len(memory) < BATCH_SIZE:
@@ -270,50 +287,45 @@ def optimize_model():
     optimizer.step()
 
 def termPlayAPI():
-    ui = UI()
     client = Client()
     client.connect()
     initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
     client.send(initPacket)
         
-    # IO thread to display UI
-    t = Thread(target=recvAndRefresh, args=(ui, client))
-    t.start()
-        
-    for c in cycle(gContext["steps"]):
-        if gContext["gameBeginFlag"]:
-            break
-        print(
-            f"\r\033[0;32m{c}\033[0m \33[1mWaiting for the other player to connect...\033[0m",
-            flush=True,
-            end="",
-        )
-        sleep(0.1)
-    return ui, client
+    stat_resp = client.recv()
+
+    if stat_resp.type == PacketType.ActionResp:
+        gContext["gameBeginFlag"] = True
+        gContext["playerID"] = stat_resp.data.player_id
+    
+    return client, stat_resp
 
 
 if __name__ == "__main__":
     num_episodes = 600
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
-        ui, client = termPlayAPI()
-        state = getState()
+        client, resp1 = termPlayAPI()
+        state = getState(resp1)
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
         while not gContext["gameOverFlag"]:
             # get from model and send request
             action = select_action(state)
-
-            action = ActionReq(gContext["playerID"], action)
-            actionPacket = PacketReq(PacketType.ActionReq, action)
+            actionReq = ActionReq(gContext["playerID"], action[0][0].item())
+            actionPacket = PacketReq(PacketType.ActionReq, actionReq)
             client.send(actionPacket)
 
-            observation = getState()
-            reward = 1
-            terminated = gContext["gameOverFlag"]
-            truncated = False
+            resp2 = client.recv()
+            if resp2.type != PacketType.GameOver:            
+                observation = getState(resp2)
+            else:
+                gContext["gameOverFlag"] = True
 
+            reward = calcReward(resp1, resp2)
             reward = torch.tensor([reward], device=device)
-            done = terminated or truncated
+            resp1 = resp2
+
+            terminated = gContext["gameOverFlag"]
 
             if terminated:
                 next_state = None
@@ -337,5 +349,5 @@ if __name__ == "__main__":
                 target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
             target_net.load_state_dict(target_net_state_dict)
 
-            if done:
-                break
+        gContext["gameOverFlag"] = False
+        print(f"Training {i_episode} finished")
