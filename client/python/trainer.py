@@ -145,6 +145,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
+def getState():
+    pass
+
 class ReplayMemory(object):
 
     def __init__(self, capacity):
@@ -193,7 +196,7 @@ LR = 1e-4
 # Get number of actions 
 n_actions = len(ActionType)
 # Get the number of state observations
-state, info = env.reset()
+state = getState()
 n_observations = len(state)
 
 policy_net = DQN(n_observations, n_actions).to(device)
@@ -219,8 +222,6 @@ def select_action(state):
             return policy_net(state).max(1)[1].view(1, 1)
     else:
         return torch.tensor([[random.choice(ActionType)]], device=device, dtype=torch.long)
-
-episode_durations = []
 
 def optimize_model():
     if len(memory) < BATCH_SIZE:
@@ -268,82 +269,73 @@ def optimize_model():
     torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
-if torch.cuda.is_available():
-    num_episodes = 600
-else:
-    num_episodes = 50
-
-for i_episode in range(num_episodes):
-    # Initialize the environment and get it's state
-    state, info = env.reset()
-    state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-    for t in count():
-        action = select_action(state)
-        observation, reward, terminated, truncated, _ = env.step(action.item())
-        reward = torch.tensor([reward], device=device)
-        done = terminated or truncated
-
-        if terminated:
-            next_state = None
-        else:
-            next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
-
-        # Store the transition in memory
-        memory.push(state, action, next_state, reward)
-
-        # Move to the next state
-        state = next_state
-
-        # Perform one step of the optimization (on the policy network)
-        optimize_model()
-
-        # Soft update of the target network's weights
-        # θ′ ← τ θ + (1 −τ )θ′
-        target_net_state_dict = target_net.state_dict()
-        policy_net_state_dict = policy_net.state_dict()
-        for key in policy_net_state_dict:
-            target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
-        target_net.load_state_dict(target_net_state_dict)
-
-        if done:
-            episode_durations.append(t + 1)
-            break
-
 def termPlayAPI():
     ui = UI()
-    
-    with Client() as client:
-        client.connect()
+    client = Client()
+    client.connect()
+    initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
+    client.send(initPacket)
         
-        initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
-        client.send(initPacket)
+    # IO thread to display UI
+    t = Thread(target=recvAndRefresh, args=(ui, client))
+    t.start()
         
-        # IO thread to display UI
-        t = Thread(target=recvAndRefresh, args=(ui, client))
-        t.start()
-        
-        print(gContext["prompt"])
-        for c in cycle(gContext["steps"]):
-            if gContext["gameBeginFlag"]:
-                break
-            print(
-                f"\r\033[0;32m{c}\033[0m \33[1mWaiting for the other player to connect...\033[0m",
-                flush=True,
-                end="",
-            )
-            sleep(0.1)
-
-        while not gContext["gameOverFlag"]:
-            
-            # get from model and send request here
-            action = ActionReq(gContext["playerID"], ActionType.SILENT)
-            
-            if gContext["gameOverFlag"]:
-                break
-            
-            actionPacket = PacketReq(PacketType.ActionReq, action)
-            client.send(actionPacket)
+    for c in cycle(gContext["steps"]):
+        if gContext["gameBeginFlag"]:
+            break
+        print(
+            f"\r\033[0;32m{c}\033[0m \33[1mWaiting for the other player to connect...\033[0m",
+            flush=True,
+            end="",
+        )
+        sleep(0.1)
+    return ui, client
 
 
 if __name__ == "__main__":
-    termPlayAPI()
+    num_episodes = 600
+    for i_episode in range(num_episodes):
+        # Initialize the environment and get it's state
+        ui, client = termPlayAPI()
+        state = getState()
+        state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+        while not gContext["gameOverFlag"]:
+            # get from model and send request
+            action = select_action(state)
+
+            action = ActionReq(gContext["playerID"], action)
+            actionPacket = PacketReq(PacketType.ActionReq, action)
+            client.send(actionPacket)
+
+            observation = getState()
+            reward = 1
+            terminated = gContext["gameOverFlag"]
+            truncated = False
+
+            reward = torch.tensor([reward], device=device)
+            done = terminated or truncated
+
+            if terminated:
+                next_state = None
+            else:
+                next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
+
+            # Store the transition in memory
+            memory.push(state, action, next_state, reward)
+
+            # Move to the next state
+            state = next_state
+
+            # Perform one step of the optimization (on the policy network)
+            optimize_model()
+
+            # Soft update of the target network's weights
+            # θ′ ← τ θ + (1 −τ )θ′
+            target_net_state_dict = target_net.state_dict()
+            policy_net_state_dict = policy_net.state_dict()
+            for key in policy_net_state_dict:
+                target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
+            target_net.load_state_dict(target_net_state_dict)
+
+            if done:
+                break
