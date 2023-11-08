@@ -301,12 +301,100 @@ def termPlayAPI():
     
     return client, stat_resp
 
+def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item):
+    pass
+
+def canMove(resp : PacketResp):
+    pass
+
+def bombPutted(resp : PacketResp):
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player:
+                    if obj.property.player_id == gContext["playerID"]:
+                        if obj.property.bomb_now_num <= obj.property.bomb_max_num:
+                            return True
+                        else:
+                            return False
+    return False
+
+direct = [[0,-1],[1,0],[0,1],[-1,0]]
+
+def inArea(resp : PacketResp):
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Bomb:
+                    for i in range(obj.property.bomb_range):
+                        for direction in range(4):
+                            xx = map.x + direct[direction][0] * (i+1)
+                            yy = map.y + direct[direction][1] * (i+1)
+                            if xx >= 0 and xx < 15 and yy >=0 and yy < 15:
+                                for map2 in resp.data.map:
+                                    if map2.x == xx and map2.y == yy and len(map2.objs):
+                                        for obj2 in map2.objs:
+                                            if obj2.type == ObjType.Player and obj2.property.player_id == gContext["playerID"]:
+                                                return [map.x, map.y, direction, i]
+    return False
+
+def prePlay(client : Client, resp : PacketResp):
+    while not isConnected(resp, ObjType.Player):
+        if not canMove:
+            # keep silent
+            actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
+            actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+            client.send(actionPacket)
+        else:
+            if isConnected(resp, ObjType.Item):
+                # get item
+                pass
+            else:
+                if bombPutted(resp):
+                    bomb = inArea(resp)
+                    if bomb:
+                        # leave
+                        move = []
+                        match bomb[2]:
+                            case 0:
+                                move.append(ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
+                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
+                                            ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP)
+                            case 1:
+                                move.append(ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
+                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
+                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,)
+                            case 2:
+                                move.append(ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
+                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
+                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN)
+                            case 3:
+                                move.append(ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
+                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
+                                            ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT)
+                        for i in range(10):
+                            actionReq = ActionReq(gContext["playerID"], move[i])
+                            actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                            client.send(actionPacket)
+                    else:
+                        # keep silent
+                        actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
+                        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                        client.send(actionPacket)
+                else:
+                    # goto bomb
+                    pass
+
+        
+        resp = client.recv()
 
 if __name__ == "__main__":
     num_episodes = 600
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         client, resp1 = termPlayAPI()
+        prePlay(client, resp1)
+        resp1 = client.recv()
         state = getState(resp1)
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
         while not gContext["gameOverFlag"]:
