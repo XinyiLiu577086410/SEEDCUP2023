@@ -301,11 +301,49 @@ def termPlayAPI():
     
     return client, stat_resp
 
-def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item):
-    pass
+direct = [[0,-1],[1,0],[0,1],[-1,0]]
+route = []
+
+def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item):
+    if pos[0] < 0 or pos[0] >= 15 or pos[1] < 0 or pos[1] >= 15 :
+        # print("Out!")
+        return False
+    for map in resp.data.map:
+        if map.x == pos[0] and map.y == pos[1]:
+            if len(map.objs):
+                for obj in map.objs:
+                    if obj.type == type:
+                        if type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                            continue
+                        if type == ObjType.Block and obj.property.removable == False:
+                            return False
+                        route.append(pos)
+                        return True
+                    elif obj.type == ObjType.Block:
+                        return False
+    for i in range(4):
+        dpos = [pos[0]+direct[i][0], pos[1]+direct[i][1]]
+        if dpos == ignore:
+            return False
+        # print(f"{pos[0]},{pos[1]} Search at {dpos[0]},{dpos[1]}")
+        if search(pos, dpos, resp, type):
+            route.append(pos)
+            return True
+    return False
+
+
+def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
+    route.clear()
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                    print(f"Start Search at {map.x},{map.y}\n")
+                    return search([map.x, map.y], [map.x, map.y], resp, type)
+    return False
 
 def canMove(resp : PacketResp):
-    pass
+    return True
 
 def bombPutted(resp : PacketResp):
     for map in resp.data.map:
@@ -313,13 +351,11 @@ def bombPutted(resp : PacketResp):
             for obj in map.objs:
                 if obj.type == ObjType.Player:
                     if obj.property.player_id == gContext["playerID"]:
-                        if obj.property.bomb_now_num <= obj.property.bomb_max_num:
+                        if obj.property.bomb_now_num < obj.property.bomb_max_num:
                             return True
                         else:
                             return False
     return False
-
-direct = [[0,-1],[1,0],[0,1],[-1,0]]
 
 def inArea(resp : PacketResp):
     for map in resp.data.map:
@@ -338,9 +374,32 @@ def inArea(resp : PacketResp):
                                                 return [map.x, map.y, direction, i]
     return False
 
+def gmove(action : list, resp : ActionResp):
+    pos = []
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                    pos.extend([map.x, map.y])
+    if len(action) == 0:
+        return
+    elif len(action) == 1:
+        actionReq = ActionReq(gContext["playerID"], action[0][0]-pos[0]+action[0][1]-pos[1])
+        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+        client.send(actionPacket)
+    else:
+        actionReq = ActionReq(gContext["playerID"], action[len(action)-2][0]-pos[0]+action[len(action)-2][1]-pos[1])
+        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+        client.send(actionPacket)
+        actionReq = ActionReq(gContext["playerID"], action[len(action)-3][0]-pos[0]+action[len(action)-3][1]-pos[1])
+        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+        client.send(actionPacket)
+
 def prePlay(client : Client, resp : PacketResp):
     while not isConnected(resp, ObjType.Player):
+        print("Not Connected!\n")
         if not canMove:
+            print("Cant Move!\n")
             # keep silent
             actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
             actionPacket = PacketReq(PacketType.ActionReq, actionReq)
@@ -348,30 +407,33 @@ def prePlay(client : Client, resp : PacketResp):
         else:
             if isConnected(resp, ObjType.Item):
                 # get item
-                pass
+                print("Item!\n")
+                gmove(route, resp)
             else:
-                if bombPutted(resp):
+                if inArea(resp):
+                    print("Bombed!\n")
                     bomb = inArea(resp)
                     if bomb:
                         # leave
                         move = []
                         match bomb[2]:
+                            # to be optimized
                             case 0:
-                                move.append(ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
+                                move.extend([ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
                                             ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
-                                            ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP)
+                                            ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP])
                             case 1:
-                                move.append(ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
+                                move.extend([ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
                                             ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
-                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,)
+                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT])
                             case 2:
-                                move.append(ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
+                                move.extend([ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
                                             ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
-                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN)
+                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN])
                             case 3:
-                                move.append(ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
+                                move.extend([ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
                                             ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
-                                            ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT)
+                                            ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT])
                         for i in range(10):
                             actionReq = ActionReq(gContext["playerID"], move[i])
                             actionPacket = PacketReq(PacketType.ActionReq, actionReq)
@@ -383,10 +445,16 @@ def prePlay(client : Client, resp : PacketResp):
                         client.send(actionPacket)
                 else:
                     # goto bomb
-                    pass
-
-        
+                    isConnected(resp, ObjType.Block)
+                    print("move to bomb")
+                    print(route)
+                    gmove(route, resp)
+                    actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
+                    actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                    client.send(actionPacket)
+                    
         resp = client.recv()
+    print("Connected!\n")
 
 if __name__ == "__main__":
     num_episodes = 600
