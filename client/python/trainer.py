@@ -301,7 +301,7 @@ def termPlayAPI():
     
     return client, stat_resp
 
-direct = [[0,-1],[1,0],[0,1],[-1,0]]
+direct = [[-1,0],[0,1],[1,0],[0,-1]]
 route = []
 
 def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item):
@@ -351,7 +351,7 @@ def bombPutted(resp : PacketResp):
             for obj in map.objs:
                 if obj.type == ObjType.Player:
                     if obj.property.player_id == gContext["playerID"]:
-                        if obj.property.bomb_now_num < obj.property.bomb_max_num:
+                        if obj.property.bomb_now_num != 0:
                             return True
                         else:
                             return False
@@ -374,6 +374,18 @@ def inArea(resp : PacketResp):
                                                 return [map.x, map.y, direction, i]
     return False
 
+def transfer(_from : list, _to : list):
+    if _from[0] < _to[0]:
+        return ActionType.MOVE_DOWN
+    elif _from[0] > _to[0]:
+        return ActionType.MOVE_UP
+    elif _from[1] < _to[1]:
+        return ActionType.MOVE_RIGHT
+    elif _from[1] < _to[1]:
+        return ActionType.MOVE_LEFT
+    else:
+        return ActionType.SILENT
+
 def gmove(action : list, resp : ActionResp):
     pos = []
     for map in resp.data.map:
@@ -383,15 +395,15 @@ def gmove(action : list, resp : ActionResp):
                     pos.extend([map.x, map.y])
     if len(action) == 0:
         return
-    elif len(action) == 1:
-        actionReq = ActionReq(gContext["playerID"], action[0][0]-pos[0]+action[0][1]-pos[1])
+    elif len(action) == 2:
+        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[0]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
     else:
-        actionReq = ActionReq(gContext["playerID"], action[len(action)-2][0]-pos[0]+action[len(action)-2][1]-pos[1])
+        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[len(action)-2]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
-        actionReq = ActionReq(gContext["playerID"], action[len(action)-3][0]-pos[0]+action[len(action)-3][1]-pos[1])
+        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[len(action)-3]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
 
@@ -408,16 +420,18 @@ def prePlay(client : Client, resp : PacketResp):
             if isConnected(resp, ObjType.Item):
                 # get item
                 print("Item!\n")
+                print(route)
                 gmove(route, resp)
             else:
-                if inArea(resp):
-                    print("Bombed!\n")
+                if bombPutted(resp):
+                    print("Bomb!\n")
                     bomb = inArea(resp)
                     if bomb:
                         # leave
                         move = []
                         match bomb[2]:
                             # to be optimized
+                            # trash code here
                             case 0:
                                 move.extend([ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
                                             ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
