@@ -301,10 +301,10 @@ def termPlayAPI():
     
     return client, stat_resp
 
-direct = [[-1,0],[0,1],[1,0],[0,-1]]
+direct = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
 route = []
 
-def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item):
+def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     if pos[0] < 0 or pos[0] >= 15 or pos[1] < 0 or pos[1] >= 15 :
         # print("Out!")
         return False
@@ -338,7 +338,7 @@ def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjTyp
         if len(map.objs):
             for obj in map.objs:
                 if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-                    print(f"Start Search at {map.x},{map.y}\n")
+                    # print(f"Start Search at {map.x},{map.y}\n")
                     return search([map.x, map.y], [map.x, map.y], resp, type)
     return False
 
@@ -363,7 +363,7 @@ def inArea(resp : PacketResp):
             for obj in map.objs:
                 if obj.type == ObjType.Bomb:
                     for i in range(obj.property.bomb_range):
-                        for direction in range(4):
+                        for direction in range(5):
                             xx = map.x + direct[direction][0] * (i+1)
                             yy = map.y + direct[direction][1] * (i+1)
                             if xx >= 0 and xx < 15 and yy >=0 and yy < 15:
@@ -381,12 +381,12 @@ def transfer(_from : list, _to : list):
         return ActionType.MOVE_UP
     elif _from[1] < _to[1]:
         return ActionType.MOVE_RIGHT
-    elif _from[1] < _to[1]:
+    elif _from[1] > _to[1]:
         return ActionType.MOVE_LEFT
     else:
         return ActionType.SILENT
 
-def gmove(action : list, resp : ActionResp):
+def gmove(action : list, resp : PacketResp):
     pos = []
     for map in resp.data.map:
         if len(map.objs):
@@ -407,6 +407,75 @@ def gmove(action : list, resp : ActionResp):
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
 
+def checkSec(resp : PacketResp, direct : int):
+    pos = []
+    for map in resp.data.map:
+        if len(map.objs):
+            for obj in map.objs:
+                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                    pos.extend([map.x, map.y])
+    match(direct):
+        case 0:
+            for map in resp.data.map:
+                if map.x == pos[0] and map.y == pos[1] -1: #left block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] and map.y == pos[1] +1: #right block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+        case 1:
+            for map in resp.data.map:
+                if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] and map.y == pos[1] +1: #right block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+        case 2:
+            for map in resp.data.map:
+                if map.x == pos[0] and map.y == pos[1] -1: #left block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] and map.y == pos[1] +1: #right block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+        case 3:
+            for map in resp.data.map:
+                if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] and map.y == pos[1] -1: #left block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+        case 4:
+            for map in resp.data.map:
+                if map.x == pos[0] and map.y == pos[1] -1: #left block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] and map.y == pos[1] +1: #right block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+                if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                    if not len(map.objs):
+                        return [[map.x,map.y], pos]
+    return []
+
+
 def prePlay(client : Client, resp : PacketResp):
     while not isConnected(resp, ObjType.Player):
         print("Not Connected!\n")
@@ -426,32 +495,12 @@ def prePlay(client : Client, resp : PacketResp):
                 if bombPutted(resp):
                     print("Bomb!\n")
                     bomb = inArea(resp)
+                    print(bomb)
                     if bomb:
                         # leave
-                        move = []
-                        match bomb[2]:
-                            # to be optimized
-                            # trash code here
-                            case 0:
-                                move.extend([ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
-                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
-                                            ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP])
-                            case 1:
-                                move.extend([ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
-                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
-                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT])
-                            case 2:
-                                move.extend([ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.SILENT,\
-                                            ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,ActionType.MOVE_RIGHT,\
-                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN])
-                            case 3:
-                                move.extend([ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.MOVE_UP,ActionType.SILENT,\
-                                            ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,ActionType.MOVE_DOWN,\
-                                            ActionType.MOVE_LEFT,ActionType.MOVE_LEFT,ActionType.MOVE_LEFT])
-                        for i in range(10):
-                            actionReq = ActionReq(gContext["playerID"], move[i])
-                            actionPacket = PacketReq(PacketType.ActionReq, actionReq)
-                            client.send(actionPacket)
+                        move = checkSec(resp, bomb[2])
+                        print(move)
+                        gmove(move, resp)
                     else:
                         # keep silent
                         actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
@@ -460,8 +509,7 @@ def prePlay(client : Client, resp : PacketResp):
                 else:
                     # goto bomb
                     isConnected(resp, ObjType.Block)
-                    print("move to bomb")
-                    print(route)
+                    print(f"move to bomb {route}")
                     gmove(route, resp)
                     actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
                     actionPacket = PacketReq(PacketType.ActionReq, actionReq)
