@@ -138,6 +138,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
+
+# user func
 def getState(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -152,6 +154,8 @@ def getState(resp : PacketResp):
     return state
     # raise Exception("Invalid State")
 
+
+# user func
 def calcReward(resp1 : PacketResp, resp2 : PacketResp):
     score1 = 0
     score2 = 0
@@ -173,6 +177,8 @@ def calcReward(resp1 : PacketResp, resp2 : PacketResp):
                 gContext["result"] = res["score"]
 
     return score2-score1
+
+# ref:https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
 
 class ReplayMemory(object):
 
@@ -287,6 +293,7 @@ def optimize_model():
     torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
+# user func
 def termPlayAPI():
     client = Client()
     client.connect()
@@ -304,6 +311,7 @@ def termPlayAPI():
 direct = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
 route = []
 
+# user func
 def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     if pos[0] < 0 or pos[0] >= 15 or pos[1] < 0 or pos[1] >= 15 :
         # print("Out!")
@@ -331,7 +339,7 @@ def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player |
             return True
     return False
 
-
+# user func
 def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     route.clear()
     for map in resp.data.map:
@@ -342,9 +350,11 @@ def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjTyp
                     return search([map.x, map.y], [map.x, map.y], resp, type)
     return False
 
+# user func
 def canMove(resp : PacketResp):
     return True
 
+# user func
 def bombPutted(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -357,6 +367,8 @@ def bombPutted(resp : PacketResp):
                             return False
     return False
 
+
+# user func
 def inArea(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -374,6 +386,7 @@ def inArea(resp : PacketResp):
                                                 return [map.x, map.y, direction, i]
     return False
 
+# user func
 def transfer(_from : list, _to : list):
     if _from[0] < _to[0]:
         return ActionType.MOVE_DOWN
@@ -386,6 +399,7 @@ def transfer(_from : list, _to : list):
     else:
         return ActionType.SILENT
 
+# user func
 def gmove(action : list, resp : PacketResp):
     pos = []
     for map in resp.data.map:
@@ -407,6 +421,7 @@ def gmove(action : list, resp : PacketResp):
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
 
+# user func
 def checkSec(resp : PacketResp, direct : int):
     pos = []
     for map in resp.data.map:
@@ -475,7 +490,7 @@ def checkSec(resp : PacketResp, direct : int):
                         return [[map.x,map.y], pos]
     return []
 
-
+# user func
 def prePlay(client : Client, resp : PacketResp):
     while not isConnected(resp, ObjType.Player):
         print("Not Connected!\n")
