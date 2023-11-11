@@ -329,6 +329,8 @@ def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player |
                         return True
                     elif obj.type == ObjType.Block:
                         return False
+            else:
+                break
     for i in range(4):
         dpos = [pos[0]+direct[i][0], pos[1]+direct[i][1]]
         if dpos == ignore:
@@ -365,7 +367,7 @@ def bombPutted(resp : PacketResp):
                             return True
                         else:
                             return False
-    return False
+    raise Exception("Not Found!")
 
 
 # user func
@@ -389,35 +391,34 @@ def inArea(resp : PacketResp):
 # user func
 def transfer(_from : list, _to : list):
     if _from[0] < _to[0]:
+        print(f"DOWN from {_from} to {_to}")
         return ActionType.MOVE_DOWN
     elif _from[0] > _to[0]:
+        print(f"UP from {_from} to {_to}")
         return ActionType.MOVE_UP
     elif _from[1] < _to[1]:
+        print(f"RIGHT from {_from} to {_to}")
         return ActionType.MOVE_RIGHT
     elif _from[1] > _to[1]:
+        print(f"LEFT from {_from} to {_to}")
         return ActionType.MOVE_LEFT
     else:
+        print(f"WARNING SILENT from {_from} to {_to}")
         return ActionType.SILENT
 
 # user func
 def gmove(action : list, resp : PacketResp):
-    pos = []
-    for map in resp.data.map:
-        if len(map.objs):
-            for obj in map.objs:
-                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-                    pos.extend([map.x, map.y])
     if len(action) == 0:
         return
     elif len(action) == 2:
-        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[0]))
+        actionReq = ActionReq(gContext["playerID"], transfer(action[1], action[0]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
     else:
-        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[len(action)-2]))
+        actionReq = ActionReq(gContext["playerID"], transfer(action[len(action)-1], action[len(action)-2]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
-        actionReq = ActionReq(gContext["playerID"], transfer(pos, action[len(action)-3]))
+        actionReq = ActionReq(gContext["playerID"], transfer(action[len(action)-2], action[len(action)-3]))
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
 
@@ -492,10 +493,11 @@ def checkSec(resp : PacketResp, direct : int):
 
 # user func
 def prePlay(client : Client, resp : PacketResp):
+    freshed = False
     while not isConnected(resp, ObjType.Player):
-        print("Not Connected!\n")
+        print("Not Connected!")
         if not canMove:
-            print("Cant Move!\n")
+            print("Cant Move!")
             # keep silent
             actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
             actionPacket = PacketReq(PacketType.ActionReq, actionReq)
@@ -503,18 +505,16 @@ def prePlay(client : Client, resp : PacketResp):
         else:
             if isConnected(resp, ObjType.Item):
                 # get item
-                print("Item!\n")
-                print(route)
+                print(f"Item! {route}")
                 gmove(route, resp)
             else:
                 if bombPutted(resp):
-                    print("Bomb!\n")
                     bomb = inArea(resp)
                     print(bomb)
                     if bomb:
                         # leave
                         move = checkSec(resp, bomb[2])
-                        print(move)
+                        print(f"leave bomb {move}")
                         gmove(move, resp)
                     else:
                         # keep silent
@@ -526,11 +526,35 @@ def prePlay(client : Client, resp : PacketResp):
                     isConnected(resp, ObjType.Block)
                     print(f"move to bomb {route}")
                     gmove(route, resp)
-                    actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
-                    actionPacket = PacketReq(PacketType.ActionReq, actionReq)
-                    client.send(actionPacket)
-                    
-        resp = client.recv()
+                    if len(route) == 4:
+                        resp = client.recv()
+                        freshed = True
+                        actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
+                        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                        client.send(actionPacket)
+                        print(f"bomb putted")
+                        gmove([route[2],route[1]], resp)
+                    elif len(route) == 3:
+                        actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
+                        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                        client.send(actionPacket)
+                        print(f"bomb putted")
+                        resp = client.recv()
+                        freshed = True
+                        gmove([route[2],route[1]], resp)
+                        actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
+                        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                        client.send(actionPacket)
+                    elif len(route) == 2:
+                        actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
+                        actionPacket = PacketReq(PacketType.ActionReq, actionReq)
+                        client.send(actionPacket)
+                        print(f"bomb putted")
+
+        if not freshed:
+            resp = client.recv()
+        else:
+            freshed = False
     print("Connected!\n")
 
 if __name__ == "__main__":
