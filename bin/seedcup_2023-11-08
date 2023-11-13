@@ -1,0 +1,13 @@
+[2023-11-08 15:47:04.614] [seedgame] [debug] setup logger success
+[2023-11-08 15:47:04.615] [seedgame] [debug] init map success 15*15
+[2023-11-08 15:47:54.955] [seedgame] [debug] player 0 add success in 0,0
+[2023-11-08 15:47:04.614] [seednet] [debug] setup logger success
+[2023-11-08 15:47:04.614] [seednet] [info] create and bind socket 0.0.0.0:9999 success!
+[2023-11-08 15:47:04.614] [seednet] [info] EpollTcpServer Init Success.
+[2023-11-08 15:47:04.614] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-08 15:47:04.614] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-08 15:47:54.955] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-11-08 15:47:54.955] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-08 15:47:54.955] [seednet] [info] accepting all connections.
+[2023-11-08 15:47:54.955] [seednet] [info] fd 8 recv 39 bytes, content: {"data":{"player_name":"bot"},"type":1}
+[2023-11-08 15:50:05.351] [seednet] [info] Stream socket peer 8 closed connections.

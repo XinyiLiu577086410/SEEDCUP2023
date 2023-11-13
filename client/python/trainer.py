@@ -430,65 +430,65 @@ def checkSec(resp : PacketResp, direct : int):
             for obj in map.objs:
                 if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
                     pos.extend([map.x, map.y])
-    match(direct):
-        case 0:
-            for map in resp.data.map:
-                if map.x == pos[0] and map.y == pos[1] -1: #left block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] and map.y == pos[1] +1: #right block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] -1 and map.y == pos[1]: #up block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-        case 1:
-            for map in resp.data.map:
-                if map.x == pos[0] -1 and map.y == pos[1]: #up block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] +1 and map.y == pos[1]: #down block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] and map.y == pos[1] +1: #right block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-        case 2:
-            for map in resp.data.map:
-                if map.x == pos[0] and map.y == pos[1] -1: #left block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] and map.y == pos[1] +1: #right block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] +1 and map.y == pos[1]: #down block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-        case 3:
-            for map in resp.data.map:
-                if map.x == pos[0] -1 and map.y == pos[1]: #up block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] +1 and map.y == pos[1]: #down block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] and map.y == pos[1] -1: #left block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-        case 4:
-            for map in resp.data.map:
-                if map.x == pos[0] and map.y == pos[1] -1: #left block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] and map.y == pos[1] +1: #right block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] -1 and map.y == pos[1]: #up block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
-                if map.x == pos[0] +1 and map.y == pos[1]: #down block
-                    if not len(map.objs):
-                        return [[map.x,map.y], pos]
+    # match(direct):
+    if direct == 0:
+        for map in resp.data.map:
+            if map.x == pos[0] and map.y == pos[1] -1: #left block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] and map.y == pos[1] +1: #right block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+    elif direct == 1:
+        for map in resp.data.map:
+            if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] and map.y == pos[1] +1: #right block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+    elif direct == 2:
+        for map in resp.data.map:
+            if map.x == pos[0] and map.y == pos[1] -1: #left block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] and map.y == pos[1] +1: #right block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+    elif direct == 3:
+        for map in resp.data.map:
+            if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] and map.y == pos[1] -1: #left block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+    elif direct == 4:
+        for map in resp.data.map:
+            if map.x == pos[0] and map.y == pos[1] -1: #left block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] and map.y == pos[1] +1: #right block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] -1 and map.y == pos[1]: #up block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
+            if map.x == pos[0] +1 and map.y == pos[1]: #down block
+                if not len(map.objs):
+                    return [[map.x,map.y], pos]
     return []
 
 # user func

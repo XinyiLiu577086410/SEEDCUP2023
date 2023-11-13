@@ -1,7 +1,7 @@
 build/
-bin/
 compile_commands.json
 .cache/
 *.vim
 *.s
 image/
+.vscode/
