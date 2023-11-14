@@ -101,7 +101,7 @@ def cliGetInitReq():
     """Get init request from user input."""
     return InitReq(config.get("player_name"))
 
-
+#from cdk
 def recvAndRefresh(ui: UI, client: Client):
     """Recv packet and refresh ui."""
     global gContext
@@ -133,8 +133,10 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Game Finished")
 
+# from pytorch.org
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = "cpu"
+
+# let device = "cpu"
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
@@ -179,7 +181,7 @@ def calcReward(resp1 : PacketResp, resp2 : PacketResp):
     return score2-score1
 
 # ref:https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
-
+# from pytorch.org
 class ReplayMemory(object):
 
     def __init__(self, capacity):
@@ -194,7 +196,7 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
-
+# from pytorch.org
 class DQN(nn.Module):
 
     def __init__(self, n_observations, n_actions):
@@ -209,7 +211,7 @@ class DQN(nn.Module):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         return self.layer3(x)
-
+# model arguements 
 BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
@@ -344,30 +346,34 @@ def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player |
 # user function
 def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     route.clear()
-    for map in resp.data.map:
-        if len(map.objs):
-            for obj in map.objs:
-                if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-                    # print(f"Start Search at {map.x},{map.y}\n")
-                    return search([map.x, map.y], [map.x, map.y], resp, type)
+    if resp.type != PacketType.GameOver:            
+        for grid in resp.data.map:
+            if len(grid.objs):
+                for obj in grid.objs:
+                    if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                        # print(f"Start Search at {grid.x},{grid.y}\n")
+                        return search([grid.x, grid.y], [grid.x, grid.y], resp, type)
     return False
 
 # user function
+# not completed? 
 def canMove(resp : PacketResp):
     return True
 
 # user function
+# 
 def bombPutted(resp : PacketResp):
-    for map in resp.data.map:
-        if len(map.objs):
-            for obj in map.objs:
-                if obj.type == ObjType.Player:
-                    if obj.property.player_id == gContext["playerID"]:
-                        if obj.property.bomb_now_num != 0:
-                            return True
-                        else:
-                            return False
-    raise Exception("Not Found!")
+    if resp.type == PacketType.ActionResp:
+        for map in resp.data.map:
+            if len(map.objs):
+                for obj in map.objs:
+                    if obj.type == ObjType.Player:
+                        if obj.property.player_id == gContext["playerID"]:
+                            if obj.property.bomb_now_num != 0:
+                                return True
+                            else:
+                                return False
+        raise Exception("Not Found!")
 
 
 # user function
@@ -492,11 +498,12 @@ def checkSec(resp : PacketResp, direct : int):
     return []
 
 # user function
+#
 def prePlay(client : Client, resp : PacketResp):
     freshed = False
     while not isConnected(resp, ObjType.Player):
         print("Not Connected!")
-        if not canMove:
+        if not canMove(resp):
             print("Cant Move!")
             # keep silent
             actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
