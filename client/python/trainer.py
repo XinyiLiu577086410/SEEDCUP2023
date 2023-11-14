@@ -6,18 +6,18 @@ from resp import *
 from config import config
 from ui import UI
 import subprocess
-import logging
-from threading import Thread
-from itertools import cycle, count
-from time import sleep
+# import logging
+# from threading import Thread
+# from itertools import cycle, count
+# from time import sleep
 from logger import logger
 import math
 import random
 from collections import namedtuple, deque
 
 import sys
-import termios
-import tty
+# import termios
+# import tty
 
 import torch
 import torch.nn as nn
@@ -33,7 +33,7 @@ gContext = {
     "gameBeginFlag": False,
 }
 
-
+# from cdk
 class Client(object):
     """Client obj that send/recv packet.
     """
@@ -96,7 +96,7 @@ class Client(object):
             return False
         return True
 
-
+#from cdk
 def cliGetInitReq():
     """Get init request from user input."""
     return InitReq(config.get("player_name"))
@@ -139,7 +139,7 @@ Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
 
-# user func
+# user function
 def getState(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -155,7 +155,7 @@ def getState(resp : PacketResp):
     # raise Exception("Invalid State")
 
 
-# user func
+# user function
 def calcReward(resp1 : PacketResp, resp2 : PacketResp):
     score1 = 0
     score2 = 0
@@ -293,7 +293,7 @@ def optimize_model():
     torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
-# user func
+# user function
 def termPlayAPI():
     client = Client()
     client.connect()
@@ -311,7 +311,7 @@ def termPlayAPI():
 direct = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
 route = []
 
-# user func
+# user function
 def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     if pos[0] < 0 or pos[0] >= 15 or pos[1] < 0 or pos[1] >= 15 :
         # print("Out!")
@@ -341,7 +341,7 @@ def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player |
             return True
     return False
 
-# user func
+# user function
 def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjType.Block):
     route.clear()
     for map in resp.data.map:
@@ -352,11 +352,11 @@ def isConnected(resp : PacketResp, type = ObjType.Player | ObjType.Item | ObjTyp
                     return search([map.x, map.y], [map.x, map.y], resp, type)
     return False
 
-# user func
+# user function
 def canMove(resp : PacketResp):
     return True
 
-# user func
+# user function
 def bombPutted(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -370,7 +370,7 @@ def bombPutted(resp : PacketResp):
     raise Exception("Not Found!")
 
 
-# user func
+# user function
 def inArea(resp : PacketResp):
     for map in resp.data.map:
         if len(map.objs):
@@ -388,7 +388,7 @@ def inArea(resp : PacketResp):
                                                 return [map.x, map.y, direction, i]
     return False
 
-# user func
+# user function
 def transfer(_from : list, _to : list):
     if _from[0] < _to[0]:
         print(f"DOWN from {_from} to {_to}")
@@ -406,7 +406,7 @@ def transfer(_from : list, _to : list):
         print(f"WARNING SILENT from {_from} to {_to}")
         return ActionType.SILENT
 
-# user func
+# user function
 def gmove(action : list, resp : PacketResp):
     if len(action) == 0:
         return
@@ -422,7 +422,7 @@ def gmove(action : list, resp : PacketResp):
         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
         client.send(actionPacket)
 
-# user func
+# user function
 def checkSec(resp : PacketResp, direct : int):
     pos = []
     for map in resp.data.map:
@@ -491,7 +491,7 @@ def checkSec(resp : PacketResp, direct : int):
                     return [[map.x,map.y], pos]
     return []
 
-# user func
+# user function
 def prePlay(client : Client, resp : PacketResp):
     freshed = False
     while not isConnected(resp, ObjType.Player):
@@ -558,7 +558,7 @@ def prePlay(client : Client, resp : PacketResp):
     print("Connected!\n")
 
 if __name__ == "__main__":
-    num_episodes = 600
+    num_episodes = 1
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         client, resp1 = termPlayAPI()

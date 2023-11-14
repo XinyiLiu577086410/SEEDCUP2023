@@ -10,3 +10,479 @@
 [2023-11-14 00:36:44.569] [seednet] [info] Epoll op: add, Epoll events: read.
 [2023-11-14 00:36:44.569] [seednet] [info] accepting all connections.
 [2023-11-14 00:36:44.569] [seednet] [info] fd 8 recv 44 bytes, content: {"data":{"player_name":"hard_bot"},"type":1}
+[2023-11-14 01:18:15.234] [seednet] [debug] setup logger success
+[2023-11-14 01:18:15.234] [seednet] [info] create and bind socket 0.0.0.0:9999 success!
+[2023-11-14 01:18:15.234] [seednet] [info] EpollTcpServer Init Success.
+[2023-11-14 01:18:15.234] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 01:18:15.235] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 01:18:51.611] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-11-14 01:18:51.611] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 01:18:51.611] [seednet] [info] accepting all connections.
+[2023-11-14 01:18:51.611] [seednet] [info] fd 8 recv 39 bytes, content: {"data":{"player_name":"bot"},"type":1}
+[2023-11-14 01:18:56.685] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-11-14 01:18:56.685] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 01:18:56.685] [seednet] [info] accepting all connections.
+[2023-11-14 01:18:56.685] [seednet] [info] fd 9 recv 52 bytes, content: {"type": 1, "data": {"player_name": "seed-soldier"}}
+[2023-11-14 01:18:56.855] [seednet] [info] fd 8 write 19841 bytes data.
+[2023-11-14 01:18:56.855] [seednet] [info] fd 9 write 19841 bytes data.
+[2023-11-14 01:18:56.874] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:56.875] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:56.875] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:18:57.055] [seednet] [info] fd 8 write 19841 bytes data.
+[2023-11-14 01:18:57.055] [seednet] [info] fd 9 write 19841 bytes data.
+[2023-11-14 01:18:57.062] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:18:57.062] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 4}}
+[2023-11-14 01:18:57.063] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:57.063] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:18:57.064] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:18:57.255] [seednet] [info] fd 8 write 19905 bytes data.
+[2023-11-14 01:18:57.255] [seednet] [info] fd 9 write 19905 bytes data.
+[2023-11-14 01:18:57.271] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 4}}
+[2023-11-14 01:18:57.272] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":0},"type":2}
+[2023-11-14 01:18:57.456] [seednet] [info] fd 8 write 19970 bytes data.
+[2023-11-14 01:18:57.456] [seednet] [info] fd 9 write 19970 bytes data.
+[2023-11-14 01:18:57.507] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:57.519] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:18:57.656] [seednet] [info] fd 8 write 19969 bytes data.
+[2023-11-14 01:18:57.656] [seednet] [info] fd 9 write 19969 bytes data.
+[2023-11-14 01:18:57.665] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:18:57.669] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:57.855] [seednet] [info] fd 8 write 19969 bytes data.
+[2023-11-14 01:18:57.855] [seednet] [info] fd 9 write 19969 bytes data.
+[2023-11-14 01:18:57.863] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:57.875] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":0},"type":2}
+[2023-11-14 01:18:58.055] [seednet] [info] fd 8 write 19969 bytes data.
+[2023-11-14 01:18:58.055] [seednet] [info] fd 9 write 19969 bytes data.
+[2023-11-14 01:18:58.117] [seednet[2023-11-14 01:18:15.235] [seedgame] [debug] setup logger success
+[2023-11-14 01:18:15.236] [seedgame] [debug] init map success 15*15
+[2023-11-14 01:18:51.611] [seedgame] [debug] player 0 add success in 0,14
+[2023-11-14 01:18:56.685] [seedgame] [debug] player 1 add success in 14,14
+[2023-11-14 01:18:56.685] [seedgame] [debug] player is enough
+[2023-11-14 01:18:56.834] [seedgame] [debug] game continue now alive num 2,round 1,max round 1200
+[2023-11-14 01:18:56.834] [seedgame] [debug] flush time success
+[2023-11-14 01:18:56.875] [seedgame] [debug] player 1 move to 13,14 success
+[2023-11-14 01:18:56.875] [seedgame] [debug] player 1 move to 12,14 success
+[2023-11-14 01:18:56.875] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:18:57.034] [seedgame] [debug] game continue now alive num 2,round 2,max round 1200
+[2023-11-14 01:18:57.034] [seedgame] [debug] flush time success
+[2023-11-14 01:18:57.062] [seedgame] [debug] player_id 1 place a bomb 0 in 12,14
+[2023-11-14 01:18:57.062] [seedgame] [debug] player 1 move to 13,14 success
+[2023-11-14 01:18:57.063] [seedgame] [warning] fail player 1 speed max 2
+[2023-11-14 01:18:57.063] [seedgame] [warning] fail player 1 speed max 2
+[2023-11-14 01:18:57.064] [seedgame] [debug] player 0 move to 0,12 success
+[2023-11-14 01:18:57.234] [seedgame] [debug] game continue now alive num 2,round 3,max round 1200
+[2023-11-14 01:18:57.234] [seedgame] [debug] flush time success
+[2023-11-14 01:18:57.271] [seedgame] [debug] player 1 move to 14,14 success
+[2023-11-14 01:18:57.272] [seedgame] [debug] player_id 0 place a bomb 1 in 0,12
+[2023-11-14 01:18:57.434] [seedgame] [debug] game continue now alive num 2,round 4,max round 1200
+[2023-11-14 01:18:57.434] [seedgame] [debug] flush time success
+[2023-11-14 01:18:57.519] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:18:57.634] [seedgame] [debug] game continue now alive num 2,round 5,max round 1200
+[2023-11-14 01:18:57.634] [seedgame] [debug] flush time success
+[2023-11-14 01:18:57.665] [seedgame] [debug] player 0 move to 0,14 success
+[2023-11-14 01:18:57.834] [seedgame] [debug] game continue now alive num 2,round 6,max round 1200
+[2023-11-14 01:18:57.834] [seedgame] [debug] flush time success
+[2023-11-14 01:18:57.875] [seedgame] [debug] player 0 move to 1,14 success
+[2023-11-14 01:18:58.034] [seedgame] [debug] game continue now alive num 2,round 7,max round 1200
+[2023-11-14 01:18:58.034] [seedgame] [debug] flush time success
+[2023-11-14 01:18:58.234] [seedgame] [debug] game continue now alive num 2,round 8,max round 1200
+[2023-11-14 01:18:58.234] [seedgame] [debug] flush time success
+[2023-11-14 01:18:58.434] [seedgame] [debug] bomb explosion in 12,14 range 1
+[2023-11-14 01:18:58.434] [seedgame] [debug] block in 11,14 disappeared
+[2023-11-14 01:18:58.435] [seedgame] [debug] game continue now alive num 2,round 9,max round 1200
+[2023-11-14 01:18:58.435] [seedgame] [debug] flush time success
+[2023-11-14 01:18:58.463] [seedgame] [debug] player 1 move to 13,14 success
+[2023-11-14 01:18:58.464] [seedgame] [debug] player 1 move to 12,14 success
+[2023-11-14 01:18:58.634] [seedgame] [debug] bomb explosion in 0,12 range 1
+[2023-11-14 01:18:58.634] [seedgame] [debug] block in 1,12 disappeared
+[2023-11-14 01:18:58.634] [seedgame] [debug] block in 0,11 disappeared
+[2023-11-14 01:18:58.635] [seedgame] [debug] game continue now alive num 2,round 10,max round 1200
+[2023-11-14 01:18:58.635] [seedgame] [debug] flush time success
+[2023-11-14 01:18:58.664] [seedgame] [debug] player_id 0 place a bomb 2 in 1,14
+[2023-11-14 01:18:58.718] [seedgame] [debug] player 1 move to 11,14 success
+[2023-11-14 01:18:58.718] [seedgame] [warning] player 1 move pos fail becase has block 74 or bomb -1
+[2023-11-14 01:18:58.834] [seedgame] [debug] game continue now alive num 2,round 11,max round 1200
+[2023-11-14 01:18:58.834] [seedgame] [debug] flush time success
+[2023-11-14 01:18:58.873] [seedgame] [debug] player_id 1 place a bomb 3 in 11,14
+[2023-11-14 01:18:58.873] [seedgame] [debug] player 1 move to 12,14 success
+[2023-11-14 01:18:58.875] [seedgame] [debug] pla] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:58.255] [seednet] [info] fd 8 write 19969 bytes data.
+[2023-11-14 01:18:58.255] [seednet] [info] fd 9 write 19969 bytes data.
+[2023-11-14 01:18:58.272] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:58.455] [seednet] [info] fd 8 write 19848 bytes data.
+[2023-11-14 01:18:58.455] [seednet] [info] fd 9 write 19848 bytes data.
+[2023-11-14 01:18:58.463] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:58.464] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:58.655] [seednet] [info] fd 8 write 19676 bytes data.
+[2023-11-14 01:18:58.655] [seednet] [info] fd 9 write 19676 bytes data.
+[2023-11-14 01:18:58.664] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":0},"type":2}
+[2023-11-14 01:18:58.718] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:58.718] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:58.855] [seednet] [info] fd 8 write 19741 bytes data.
+[2023-11-14 01:18:58.855] [seednet] [info] fd 9 write 19741 bytes data.
+[2023-11-14 01:18:58.873] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:18:58.873] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 4}}
+[2023-11-14 01:18:58.875] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":3,"playerID":0},"type":2}
+[2023-11-14 01:18:59.056] [seednet] [info] fd 8 write 19804 bytes data.
+[2023-11-14 01:18:59.056] [seednet] [info] fd 9 write 19804 bytes data.
+[2023-11-14 01:18:59.063] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:18:59.065] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:18:59.254] [seednet] [info] fd 8 write 19804 bytes data.
+[2023-11-14 01:18:59.254] [seednet] [info] fd 9 write 19804 bytes data.
+[2023-11-14 01:18:59.305] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:18:59.313] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:18:59.455] [seednet] [info] fd 8 write 19804 bytes data.
+[2023-11-14 01:18:59.455] [seednet] [info] fd 9 write 19804 bytes data.
+[2023-11-14 01:18:59.474] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:18:59.475] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:18:59.654] [seednet] [info] fd 8 write 19869 bytes data.
+[2023-11-14 01:18:59.654] [seednet] [info] fd 9 write 19869 bytes data.
+[2023-11-14 01:18:59.662] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 1}}
+[2023-11-14 01:18:59.673] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":0},"type":2}
+[2023-11-14 01:18:59.855] [seednet] [info] fd 8 write 19933 bytes data.
+[2023-11-14 01:18:59.855] [seednet] [info] fd 9 write 19933 bytes data.
+[2023-11-14 01:18:59.917] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 1}}
+[2023-11-14 01:18:59.918] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:00.055] [seednet] [info] fd 8 write 19850 bytes data.
+[2023-11-14 01:19:00.055] [seednet] [info] fd 9 write 19850 bytes data.
+[2023-11-14 01:19:00.063] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 1}}
+[2023-11-14 01:19:00.072] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actiyer 0 move to 0,14 success
+[2023-11-14 01:18:59.034] [seedgame] [debug] game continue now alive num 2,round 12,max round 1200
+[2023-11-14 01:18:59.034] [seedgame] [debug] flush time success
+[2023-11-14 01:18:59.065] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:18:59.234] [seedgame] [debug] game continue now alive num 2,round 13,max round 1200
+[2023-11-14 01:18:59.234] [seedgame] [debug] flush time success
+[2023-11-14 01:18:59.306] [seedgame] [warning] player 1 move pos fail becase has block -1 or bomb 3
+[2023-11-14 01:18:59.313] [seedgame] [debug] player 0 move to 0,12 success
+[2023-11-14 01:18:59.434] [seedgame] [debug] game continue now alive num 2,round 14,max round 1200
+[2023-11-14 01:18:59.434] [seedgame] [debug] flush time success
+[2023-11-14 01:18:59.474] [seedgame] [debug] player_id 1 place a bomb 4 in 12,14
+[2023-11-14 01:18:59.475] [seedgame] [debug] player 0 move to 0,11 success
+[2023-11-14 01:18:59.634] [seedgame] [debug] game continue now alive num 2,round 15,max round 1200
+[2023-11-14 01:18:59.634] [seedgame] [debug] flush time success
+[2023-11-14 01:18:59.662] [seedgame] [debug] player 1 move to 12,13 success
+[2023-11-14 01:18:59.673] [seedgame] [debug] player_id 0 place a bomb 5 in 0,11
+[2023-11-14 01:18:59.834] [seedgame] [debug] game continue now alive num 2,round 16,max round 1200
+[2023-11-14 01:18:59.834] [seedgame] [debug] flush time success
+[2023-11-14 01:18:59.917] [seedgame] [debug] player 1 move to 12,12 success
+[2023-11-14 01:18:59.918] [seedgame] [debug] player 0 move to 0,12 success
+[2023-11-14 01:19:00.034] [seedgame] [debug] bomb explosion in 1,14 range 1
+[2023-11-14 01:19:00.034] [seedgame] [debug] block in 2,14 disappeared
+[2023-11-14 01:19:00.035] [seedgame] [debug] game continue now alive num 2,round 17,max round 1200
+[2023-11-14 01:19:00.035] [seedgame] [debug] flush time success
+[2023-11-14 01:19:00.063] [seedgame] [warning] player 1 move pos fail becase has block 151 or bomb -1
+[2023-11-14 01:19:00.072] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:19:00.234] [seedgame] [debug] bomb explosion in 11,14 range 1
+[2023-11-14 01:19:00.234] [seedgame] [debug] block in 10,14 disappeared
+[2023-11-14 01:19:00.234] [seedgame] [debug] bomb explosion in 12,14 range 1
+[2023-11-14 01:19:00.235] [seedgame] [debug] game continue now alive num 2,round 18,max round 1200
+[2023-11-14 01:19:00.235] [seedgame] [debug] flush time success
+[2023-11-14 01:19:00.271] [seedgame] [warning] player 1 move pos fail becase has block 151 or bomb -1
+[2023-11-14 01:19:00.271] [seedgame] [warning] player 1 move pos fail becase has block 151 or bomb -1
+[2023-11-14 01:19:00.273] [seedgame] [debug] player 0 move to 0,14 success
+[2023-11-14 01:19:00.434] [seedgame] [debug] game continue now alive num 2,round 19,max round 1200
+[2023-11-14 01:19:00.434] [seedgame] [debug] flush time success
+[2023-11-14 01:19:00.511] [seedgame] [debug] player 1 move to 12,13 success
+[2023-11-14 01:19:00.518] [seedgame] [debug] player 0 move to 1,14 success
+[2023-11-14 01:19:00.634] [seedgame] [debug] game continue now alive num 2,round 20,max round 1200
+[2023-11-14 01:19:00.634] [seedgame] [debug] flush time success
+[2023-11-14 01:19:00.673] [seedgame] [debug] player 0 pick up potion 3,get mark 100
+[2023-11-14 01:19:00.673] [seedgame] [debug] player 0 move to 2,14 success
+[2023-11-14 01:19:00.674] [seedgame] [debug] player 1 move to 12,14 success
+[2023-11-14 01:19:00.834] [seedgame] [debug] game continue now alive num 2,round 21,max round 1200
+[2023-11-14 01:19:00.834] [seedgame] [debug] flush time success
+[2023-11-14 01:19:00.863] [seedgame] [warning] player 1 move pos fail 12,15 cannot move out map
+[2023-11-14 01:19:00.863] [seedgame] [warning] player 1 move pos fail 12,15 cannot move out map
+[2023-11-14 01:19:00.867] [seedgame] [debug] player_id 0 place a bomb 6 in 2,14
+[2023-11-14 01:19:01.034] [seedgame] [debug] bomb explosion in 0,11 range 1
+[2023-11-14 01:19:01.034] [seedgame] [debug] block in 0,10 disappeared
+[2023-11-14 01:19:01.035] [seedgame] [debug] game continue now alive num 2,round 22,max rounonType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:00.255] [seednet] [info] fd 8 write 19709 bytes data.
+[2023-11-14 01:19:00.255] [seednet] [info] fd 9 write 19709 bytes data.
+[2023-11-14 01:19:00.271] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 1}}
+[2023-11-14 01:19:00.271] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 1}}
+[2023-11-14 01:19:00.273] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:00.455] [seednet] [info] fd 8 write 19709 bytes data.
+[2023-11-14 01:19:00.455] [seednet] [info] fd 9 write 19709 bytes data.
+[2023-11-14 01:19:00.510] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 0}}
+[2023-11-14 01:19:00.511] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 2}}
+[2023-11-14 01:19:00.518] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":0},"type":2}
+[2023-11-14 01:19:00.655] [seednet] [info] fd 8 write 19709 bytes data.
+[2023-11-14 01:19:00.655] [seednet] [info] fd 9 write 19709 bytes data.
+[2023-11-14 01:19:00.673] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":0},"type":2}
+[2023-11-14 01:19:00.674] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 2}}
+[2023-11-14 01:19:00.855] [seednet] [info] fd 8 write 19673 bytes data.
+[2023-11-14 01:19:00.855] [seednet] [info] fd 9 write 19673 bytes data.
+[2023-11-14 01:19:00.863] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 2}}
+[2023-11-14 01:19:00.863] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 2}}
+[2023-11-14 01:19:00.867] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":0},"type":2}
+[2023-11-14 01:19:01.054] [seednet] [info] fd 8 write 19619 bytes data.
+[2023-11-14 01:19:01.054] [seednet] [info] fd 9 write 19619 bytes data.
+[2023-11-14 01:19:01.112] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 2}}
+[2023-11-14 01:19:01.112] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.114] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":3,"playerID":0},"type":2}
+[2023-11-14 01:19:01.255] [seednet] [info] fd 8 write 19618 bytes data.
+[2023-11-14 01:19:01.255] [seednet] [info] fd 9 write 19618 bytes data.
+[2023-11-14 01:19:01.269] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.272] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":3,"playerID":0},"type":2}
+[2023-11-14 01:19:01.455] [seednet] [info] fd 8 write 19582 bytes data.
+[2023-11-14 01:19:01.455] [seednet] [info] fd 9 write 19582 bytes data.
+[2023-11-14 01:19:01.475] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:19:01.562] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.562] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.655] [seednet] [info] fd 8 write 19582 bytes data.
+[2023-11-14 01:19:01.655] [seednet] [info] fd 9 write 19582 bytes data.
+[2023-11-14 01:19:01.663] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.663] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.713] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:19:01.855] [seednet] [info] fd 8 write 19582 bytes data.
+[2023-11-14 01:19:01.855] [seednet] [info] fd 9 write 19582 bytes data.
+[2023-11-14 01:19:01.872] [seednet] [info]d 1200
+[2023-11-14 01:19:01.035] [seedgame] [debug] flush time success
+[2023-11-14 01:19:01.112] [seedgame] [warning] player 1 move pos fail 12,15 cannot move out map
+[2023-11-14 01:19:01.112] [seedgame] [debug] player 1 move to 11,14 success
+[2023-11-14 01:19:01.114] [seedgame] [debug] player 0 move to 1,14 success
+[2023-11-14 01:19:01.234] [seedgame] [debug] game continue now alive num 2,round 23,max round 1200
+[2023-11-14 01:19:01.234] [seedgame] [debug] flush time success
+[2023-11-14 01:19:01.269] [seedgame] [debug] player 1 pick up potion 1,get mark 100
+[2023-11-14 01:19:01.269] [seedgame] [debug] player 1 move to 10,14 success
+[2023-11-14 01:19:01.272] [seedgame] [debug] player 0 move to 0,14 success
+[2023-11-14 01:19:01.434] [seedgame] [debug] game continue now alive num 2,round 24,max round 1200
+[2023-11-14 01:19:01.434] [seedgame] [debug] flush time success
+[2023-11-14 01:19:01.475] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:19:01.562] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:01.563] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:01.634] [seedgame] [debug] game continue now alive num 2,round 25,max round 1200
+[2023-11-14 01:19:01.634] [seedgame] [debug] flush time success
+[2023-11-14 01:19:01.663] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:01.663] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:01.713] [seedgame] [debug] player 0 move to 0,12 success
+[2023-11-14 01:19:01.834] [seedgame] [debug] game continue now alive num 2,round 26,max round 1200
+[2023-11-14 01:19:01.834] [seedgame] [debug] flush time success
+[2023-11-14 01:19:01.872] [seedgame] [debug] player 0 move to 0,11 success
+[2023-11-14 01:19:01.915] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:01.916] [seedgame] [debug] player_id 1 place a bomb 7 in 10,14
+[2023-11-14 01:19:02.034] [seedgame] [debug] game continue now alive num 2,round 27,max round 1200
+[2023-11-14 01:19:02.034] [seedgame] [debug] flush time success
+[2023-11-14 01:19:02.068] [seedgame] [debug] player 0 move to 0,10 success
+[2023-11-14 01:19:02.072] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:02.234] [seedgame] [debug] bomb explosion in 2,14 range 1
+[2023-11-14 01:19:02.234] [seedgame] [debug] block in 3,14 disappeared
+[2023-11-14 01:19:02.234] [seedgame] [debug] block in 2,13 disappeared
+[2023-11-14 01:19:02.235] [seedgame] [debug] game continue now alive num 2,round 28,max round 1200
+[2023-11-14 01:19:02.235] [seedgame] [debug] flush time success
+[2023-11-14 01:19:02.263] [seedgame] [warning] play_id 1 cannot place bomb,exist block -1 or bomb 7
+[2023-11-14 01:19:02.319] [seedgame] [debug] player 0 move to 0,11 success
+[2023-11-14 01:19:02.434] [seedgame] [debug] game continue now alive num 2,round 29,max round 1200
+[2023-11-14 01:19:02.434] [seedgame] [debug] flush time success
+[2023-11-14 01:19:02.475] [seedgame] [debug] player 0 move to 0,12 success
+[2023-11-14 01:19:02.516] [seedgame] [warning] player 1 move pos fail becase has block 98 or bomb -1
+[2023-11-14 01:19:02.634] [seedgame] [debug] game continue now alive num 2,round 30,max round 1200
+[2023-11-14 01:19:02.634] [seedgame] [debug] flush time success
+[2023-11-14 01:19:02.664] [seedgame] [debug] player 0 move to 0,13 success
+[2023-11-14 01:19:02.670] [seedgame] [warning] play_id 1 cannot place bomb,exist block -1 or bomb 7
+[2023-11-14 01:19:02.834] [seedgame] [debug] game continue now alive num 2,round 31,max round 1200
+[2023-11-14 01:19:02.834] [seedgame] [debug] flush time success
+[2023-11-14 01:19:02.863] [seedgame] [debug] player 1 move to 11,14 success
+[2023-11-14 01:19:02.918] [seedgame] [debug] player 0 move to 0,14 success
+[2023-11-14 01:19:03.034] [seedgame] [debug] game continue now alive num 2,round 32,max round 1200
+[2023-11-14 01:19:03.034] [seedgame] [debug] flush time success
+[2023-11-14 01:19:03.073] [seed fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:19:01.915] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:01.915] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:19:02.055] [seednet] [info] fd 8 write 19647 bytes data.
+[2023-11-14 01:19:02.055] [seednet] [info] fd 9 write 19647 bytes data.
+[2023-11-14 01:19:02.068] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":0},"type":2}
+[2023-11-14 01:19:02.072] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:02.255] [seednet] [info] fd 8 write 19510 bytes data.
+[2023-11-14 01:19:02.255] [seednet] [info] fd 9 write 19510 bytes data.
+[2023-11-14 01:19:02.263] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:19:02.319] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:02.455] [seednet] [info] fd 8 write 19510 bytes data.
+[2023-11-14 01:19:02.455] [seednet] [info] fd 9 write 19510 bytes data.
+[2023-11-14 01:19:02.475] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:02.516] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 3}}
+[2023-11-14 01:19:02.655] [seednet] [info] fd 8 write 19510 bytes data.
+[2023-11-14 01:19:02.655] [seednet] [info] fd 9 write 19510 bytes data.
+[2023-11-14 01:19:02.664] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:02.670] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 5}}
+[2023-11-14 01:19:02.855] [seednet] [info] fd 8 write 19510 bytes data.
+[2023-11-14 01:19:02.855] [seednet] [info] fd 9 write 19510 bytes data.
+[2023-11-14 01:19:02.863] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 4}}
+[2023-11-14 01:19:02.918] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":0},"type":2}
+[2023-11-14 01:19:03.055] [seednet] [info] fd 8 write 19509 bytes data.
+[2023-11-14 01:19:03.055] [seednet] [info] fd 9 write 19509 bytes data.
+[2023-11-14 01:19:03.073] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":0},"type":2}
+[2023-11-14 01:19:03.118] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 1, "actionType": 4}}
+[2023-11-14 01:19:03.236] [seednet] [info] fd 8 write 105 bytes data.
+[2023-11-14 01:19:03.236] [seednet] [info] fd 9 write 105 bytes data.
+[2023-11-14 01:19:03.236] [seednet] [info] epoll tcp server reset.
+[2023-11-14 01:19:03.237] [seednet] [info] Stream socket peer 8 closed connections.
+[2023-11-14 01:19:03.457] [seednet] [info] Stream socket peer 9 closed connections.
+[2023-11-14 14:08:11.375] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-11-14 14:08:11.375] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 14:08:11.375] [seednet] [info] accepting all connections.
+[2023-11-14 14:08:11.375] [seednet] [info] fd 8 recv 39 bytes, content: {"data":{"player_name":"bot"},"type":1}
+[2023-11-14 14:08:18.024] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-11-14 14:08:18.025] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-11-14 14:08:18.025] [seednet] [info] accepting all connections.
+[2023-11-14 14:08:18.025] [seednet] [info] fd 9 recv 52 bytes, content: {"type": 1, "data": {"player_name": "seed-soldier"}}
+[2023-11-14 14:08:18.056] [seednet] [info] fd 8 write 20231 bytes data.
+[2023-11-14 14:08:18.056] [seednet] [info] fd 9 write 20231 bytes data.
+[2023-11-14 14:08:18.075] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:18.076] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "datgame] [debug] player 0 move to 1,14 success
+[2023-11-14 01:19:03.118] [seedgame] [debug] player 1 move to 12,14 success
+[2023-11-14 01:19:03.234] [seedgame] [debug] bomb explosion in 10,14 range 2
+[2023-11-14 01:19:03.234] [seedgame] [debug] 1 player's bomb injuries other_player 1,in 12,14
+[2023-11-14 01:19:03.234] [seedgame] [debug] block in 9,14 disappeared
+[2023-11-14 01:19:03.235] [seedgame] [debug] block in 10,13 disappeared
+[2023-11-14 01:19:03.235] [seedgame] [debug] player 1 is dead
+[2023-11-14 01:19:03.235] [seedgame] [debug] game over only winner is 0
+[2023-11-14 01:19:03.235] [seedgame] [debug] flush time success
+[2023-11-14 01:19:03.237] [seedgame] [debug] init map success 15*15
+[2023-11-14 14:08:11.375] [seedgame] [debug] player 2 add success in 0,0
+[2023-11-14 14:08:18.025] [seedgame] [debug] player 3 add success in 14,0
+[2023-11-14 14:08:18.025] [seedgame] [debug] player is enough
+[2023-11-14 14:08:18.037] [seedgame] [debug] game continue now alive num 2,round 1,max round 1200
+[2023-11-14 14:08:18.037] [seedgame] [debug] flush time success
+[2023-11-14 14:08:18.076] [seedgame] [debug] player 3 move to 13,0 success
+[2023-11-14 14:08:18.076] [seedgame] [debug] player 3 move to 12,0 success
+[2023-11-14 14:08:18.076] [seedgame] [debug] player 2 move to 0,1 success
+[2023-11-14 14:08:18.237] [seedgame] [debug] game continue now alive num 2,round 2,max round 1200
+[2023-11-14 14:08:18.237] [seedgame] [debug] flush time success
+[2023-11-14 14:08:18.265] [seedgame] [debug] player_id 3 place a bomb 8 in 12,0
+[2023-11-14 14:08:18.265] [seedgame] [debug] player 3 move to 13,0 success
+[2023-11-14 14:08:18.265] [seedgame] [warning] fail player 3 speed max 2
+[2023-11-14 14:08:18.265] [seedgame] [warning] fail player 3 speed max 2
+[2023-11-14 14:08:18.267] [seedgame] [debug] player_id 2 place a bomb 9 in 0,1
+[2023-11-14 14:08:18.437] [seedgame] [debug] game continue now alive num 2,round 3,max round 1200
+[2023-11-14 14:08:18.437] [seedgame] [debug] flush time success
+[2023-11-14 14:08:18.474] [seedgame] [debug] player 3 move to 14,0 success
+[2023-11-14 14:08:18.475] [seedgame] [debug] player 2 move to 0,0 success
+[2023-11-14 14:08:18.637] [seedgame] [debug] game continue now alive num 2,round 4,max round 1200
+[2023-11-14 14:08:18.637] [seedgame] [debug] flush time success
+[2023-11-14 14:08:18.714] [seedgame] [debug] player 2 move to 1,0 success
+[2023-11-14 14:08:18.837] [seedgame] [debug] game continue now alive num 2,round 5,max round 1200
+[2023-11-14 14:08:18.837] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.037] [seedgame] [debug] game continue now alive num 2,round 6,max round 1200
+[2023-11-14 14:08:19.037] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.237] [seedgame] [debug] game continue now alive num 2,round 7,max round 1200
+[2023-11-14 14:08:19.237] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.437] [seedgame] [debug] game continue now alive num 2,round 8,max round 1200
+[2023-11-14 14:08:19.437] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.637] [seedgame] [debug] bomb explosion in 0,1 range 1
+[2023-11-14 14:08:19.637] [seedgame] [debug] block in 0,2 disappeared
+[2023-11-14 14:08:19.637] [seedgame] [debug] bomb explosion in 12,0 range 1
+[2023-11-14 14:08:19.637] [seedgame] [debug] block in 11,0 disappeared
+[2023-11-14 14:08:19.637] [seedgame] [debug] game continue now alive num 2,round 9,max round 1200
+[2023-11-14 14:08:19.637] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.664] [seedgame] [debug] player 3 move to 13,0 success
+[2023-11-14 14:08:19.664] [seedgame] [debug] player 3 move to 12,0 success
+[2023-11-14 14:08:19.674] [seedgame] [debug] player 2 move to 0,0 success
+[2023-11-14 14:08:19.837] [seedgame] [debug] game continue now alive num 2,round 10,max round 1200
+[2023-11-14 14:08:19.837] [seedgame] [debug] flush time success
+[2023-11-14 14:08:19.875] [seedgame] [debug] player 2 move to 0,1 success
+[2023-11-14 14:08:19.916] [seedgame] [debug] player 3 move to 11,0 success
+[2023-11-14 14:08:19.917] [seedgame] [warning] player 3 move pos fail becaa": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:18.076] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":2},"type":2}
+[2023-11-14 14:08:18.257] [seednet] [info] fd 8 write 20231 bytes data.
+[2023-11-14 14:08:18.257] [seednet] [info] fd 9 write 20231 bytes data.
+[2023-11-14 14:08:18.265] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 5}}
+[2023-11-14 14:08:18.265] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 4}}
+[2023-11-14 14:08:18.265] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:18.265] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 5}}
+[2023-11-14 14:08:18.267] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":2},"type":2}
+[2023-11-14 14:08:18.457] [seednet] [info] fd 8 write 20360 bytes data.
+[2023-11-14 14:08:18.457] [seednet] [info] fd 9 write 20360 bytes data.
+[2023-11-14 14:08:18.474] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 4}}
+[2023-11-14 14:08:18.475] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":2},"type":2}
+[2023-11-14 14:08:18.656] [seednet] [info] fd 8 write 20359 bytes data.
+[2023-11-14 14:08:18.656] [seednet] [info] fd 9 write 20359 bytes data.
+[2023-11-14 14:08:18.714] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":2},"type":2}
+[2023-11-14 14:08:18.716] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:18.857] [seednet] [info] fd 8 write 20359 bytes data.
+[2023-11-14 14:08:18.857] [seednet] [info] fd 9 write 20359 bytes data.
+[2023-11-14 14:08:18.865] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:19.059] [seednet] [info] fd 8 write 20359 bytes data.
+[2023-11-14 14:08:19.059] [seednet] [info] fd 9 write 20359 bytes data.
+[2023-11-14 14:08:19.075] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:19.256] [seednet] [info] fd 8 write 20359 bytes data.
+[2023-11-14 14:08:19.257] [seednet] [info] fd 9 write 20359 bytes data.
+[2023-11-14 14:08:19.310] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:19.456] [seednet] [info] fd 8 write 20359 bytes data.
+[2023-11-14 14:08:19.456] [seednet] [info] fd 9 write 20359 bytes data.
+[2023-11-14 14:08:19.474] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:19.656] [seednet] [info] fd 8 write 20115 bytes data.
+[2023-11-14 14:08:19.656] [seednet] [info] fd 9 write 20115 bytes data.
+[2023-11-14 14:08:19.664] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:19.664] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:19.674] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":3,"playerID":2},"type":2}
+[2023-11-14 14:08:19.856] [seednet] [info] fd 8 write 20116 bytes data.
+[2023-11-14 14:08:19.856] [seednet] [info] fd 9 write 20116 bytes data.
+[2023-11-14 14:08:19.875] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":2},"type":2}
+[2023-11-14 14:08:19.916] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:19.917] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:20.057] [seednet] [info] fd 8 write 20116 bytes data.
+[2023-11-14 14:08:20.057] [seednet] [info] fd 9 write 20116 bytes data.
+[2023-11-14 14:08:20.074] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 5}}
+[2023-11se has block 308 or bomb -1
+[2023-11-14 14:08:20.037] [seedgame] [debug] game continue now alive num 2,round 11,max round 1200
+[2023-11-14 14:08:20.037] [seedgame] [debug] flush time success
+[2023-11-14 14:08:20.074] [seedgame] [debug] player_id 3 place a bomb 10 in 11,0
+[2023-11-14 14:08:20.074] [seedgame] [debug] player 3 move to 12,0 success
+[2023-11-14 14:08:20.074] [seedgame] [warning] fail player 3 speed max 2
+[2023-11-14 14:08:20.118] [seedgame] [debug] player 2 move to 0,2 success
+[2023-11-14 14:08:20.237] [seedgame] [debug] game continue now alive num 2,round 12,max round 1200
+[2023-11-14 14:08:20.237] [seedgame] [debug] flush time success
+[2023-11-14 14:08:20.274] [seedgame] [warning] player 3 move pos fail becase has block -1 or bomb 10
+[2023-11-14 14:08:20.275] [seedgame] [debug] player_id 2 place a bomb 11 in 0,2
+[2023-11-14 14:08:20.437] [seedgame] [debug] game continue now alive num 2,round 13,max round 1200
+[2023-11-14 14:08:20.437] [seedgame] [debug] flush time success
+[2023-11-14 14:08:20.477] [seedgame] [debug] player 2 move to 0,1 success
+[2023-11-14 14:08:20.516] [seedgame] [debug] player_id 3 place a bomb 12 in 12,0
+[2023-11-14 14:08:20.637] [seedgame] [debug] game continue now alive num 2,round 14,max round 1200
+[2023-11-14 14:08:20.637] [seedgame] [debug] flush time success
+[2023-11-14 14:08:20.678] [seedgame] [debug] player 3 move to 12,1 success
+[2023-11-14 14:08:20.719] [seedgame] [debug] player 2 move to 0,0 success
+[2023-11-14 14:08:20.837] [seedgame] [debug] game continue now alive num 2,round 15,max round 1200
+[2023-11-14 14:08:20.837] [seedgame] [debug] flush time success
+[2023-11-14 14:08:20.875] [seedgame] [debug] player 2 move to 1,0 success
+[2023-11-14 14:08:21.037] [seedgame] [debug] game continue now alive num 2,round 16,max round 1200
+[2023-11-14 14:08:21.037] [seedgame] [debug] flush time success
+[2023-11-14 14:08:21.237] [seedgame] [debug] game continue now alive num 2,round 17,max round 1200
+[2023-11-14 14:08:21.237] [seedgame] [debug] flush time success
+[2023-11-14 14:08:21.437] [seedgame] [debug] bomb explosion in 11,0 range 1
+[2023-11-14 14:08:21.437] [seedgame] [debug] block in 10,0 disappeared
+[2023-11-14 14:08:21.437] [seedgame] [debug] bomb explosion in 12,0 range 1
+[2023-11-14 14:08:21.437] [seedgame] [debug] 3 player's bomb injuries other_player 3,in 12,1
+[2023-11-14 14:08:21.437] [seedgame] [debug] player 3 is dead
+[2023-11-14 14:08:21.437] [seedgame] [debug] game over only winner is 2
+[2023-11-14 14:08:21.437] [seedgame] [debug] flush time success
+[2023-11-14 14:08:21.439] [seedgame] [debug] init map success 15*15
+-14 14:08:20.074] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 4}}
+[2023-11-14 14:08:20.074] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 0}}
+[2023-11-14 14:08:20.118] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":2,"playerID":2},"type":2}
+[2023-11-14 14:08:20.257] [seednet] [info] fd 8 write 20181 bytes data.
+[2023-11-14 14:08:20.257] [seednet] [info] fd 9 write 20181 bytes data.
+[2023-11-14 14:08:20.274] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 3}}
+[2023-11-14 14:08:20.275] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":5,"playerID":2},"type":2}
+[2023-11-14 14:08:20.459] [seednet] [info] fd 8 write 20247 bytes data.
+[2023-11-14 14:08:20.459] [seednet] [info] fd 9 write 20247 bytes data.
+[2023-11-14 14:08:20.477] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":2},"type":2}
+[2023-11-14 14:08:20.516] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 5}}
+[2023-11-14 14:08:20.659] [seednet] [info] fd 8 write 20312 bytes data.
+[2023-11-14 14:08:20.659] [seednet] [info] fd 9 write 20312 bytes data.
+[2023-11-14 14:08:20.678] [seednet] [info] fd 9 recv 53 bytes, content: {"type": 2, "data": {"playerID": 3, "actionType": 2}}
+[2023-11-14 14:08:20.719] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":1,"playerID":2},"type":2}
+[2023-11-14 14:08:20.857] [seednet] [info] fd 8 write 20311 bytes data.
+[2023-11-14 14:08:20.857] [seednet] [info] fd 9 write 20311 bytes data.
+[2023-11-14 14:08:20.875] [seednet] [info] fd 8 recv 47 bytes, content: {"data":{"actionType":4,"playerID":2},"type":2}
+[2023-11-14 14:08:21.056] [seednet] [info] fd 8 write 20311 bytes data.
+[2023-11-14 14:08:21.056] [seednet] [info] fd 9 write 20311 bytes data.
+[2023-11-14 14:08:21.257] [seednet] [info] fd 8 write 20311 bytes data.
+[2023-11-14 14:08:21.257] [seednet] [info] fd 9 write 20311 bytes data.
+[2023-11-14 14:08:21.438] [seednet] [info] fd 8 write 104 bytes data.
+[2023-11-14 14:08:21.438] [seednet] [info] fd 9 write 104 bytes data.
+[2023-11-14 14:08:21.438] [seednet] [info] epoll tcp server reset.
+[2023-11-14 14:08:21.439] [seednet] [info] Stream socket peer 8 closed connections.
+[2023-11-14 14:08:21.761] [seednet] [info] Stream socket peer 9 closed connections.
