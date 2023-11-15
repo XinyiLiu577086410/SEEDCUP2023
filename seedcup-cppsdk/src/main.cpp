@@ -31,10 +31,10 @@ path_t Dijstra(GameMsg & msg) {
 }
 
 
-void TakeMyAction(GameMsg & msg, vector<ActionType>& MyAction) {
-  path_t paths = Dijstra(msg);
+
+/* Indentification Friend or Foe */
+void IFF(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, path_t& paths) {
   Player self = *msg.players[msg.player_id];
-  set<Player> enemy, engagedEnemy;
   for(auto p : msg.players) {
     if(p.first == msg.player_id) continue;
     else enemy.insert(*p.second);
@@ -44,16 +44,41 @@ void TakeMyAction(GameMsg & msg, vector<ActionType>& MyAction) {
       engagedEnemy.insert(p);
     }
   }
-  if(engagedEnemy.size() == 0) {
-    static Block nearestBlock;
-    int nearestLen = INF;
-    for(auto p : msg.blocks){
-      Block thisBlock = *p.second;
-      if(paths.routes[{thisBlock.x,thisBlock.y}].len < nearestLen) {
-        nearestBlock = thisBlock;
-        nearestLen = paths.routes[{thisBlock.x,thisBlock.y}].len;
-      }
+
+}
+
+void SelectBlock(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, path_t& paths, Block& nearestBlock) {
+  int nearestLen = INF;
+  for(auto p : msg.blocks){
+    Block thisBlock = *p.second;
+    if(paths.routes[{thisBlock.x,thisBlock.y}].len < nearestLen) {
+      nearestBlock = thisBlock;
+      nearestLen = paths.routes[{thisBlock.x,thisBlock.y}].len;
     }
+  }
+}
+
+
+void GoTo(){}
+
+void TakeMyAction(GameMsg & msg, vector<ActionType>& MyAction) {
+  
+  path_t paths = Dijstra(msg);
+  Player self = *msg.players[msg.player_id];
+  set<Player> enemy, engagedEnemy;
+  IFF(msg, enemy, engagedEnemy, paths);
+  static Block nearestBlock;
+  static bool onTheWay = false;
+  static int lastStep = 0;
+  if(engagedEnemy.size() == 0) {
+    if(onTheWay == false) {
+      SelectBlock(msg, enemy, engagedEnemy, paths, nearestBlock);
+      lastStep == 0;
+      onTheWay = true;
+    }
+  } 
+  else {
+
   }
 }
 

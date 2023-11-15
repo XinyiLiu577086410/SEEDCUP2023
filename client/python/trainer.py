@@ -244,6 +244,16 @@ def bombPutted(resp : PacketResp):
 
 # user function
 def inArea(resp : PacketResp):
+	"""
+	Check if there is a bomb in the vicinity of the player.
+
+	Args:
+		resp (PacketResp): The response packet from the server.
+
+	Returns:
+		list: A list containing the x and y coordinates of the bomb, the direction of the bomb, and the bomb's range.
+		False: If there is no bomb in the vicinity of the player.
+	"""
 	for grid in resp.data.map:
 		if len(grid.objs):
 			for obj in grid.objs:
@@ -261,7 +271,18 @@ def inArea(resp : PacketResp):
 	return False
 
 # user function
+
 def transfer(_from : list, _to : list):
+	"""
+	Transfers an item from one location to another.
+
+	Args:
+		_from (list): The starting location of the item.
+		_to (list): The destination location of the item.
+
+	Returns:
+		ActionType: The action required to transfer the item.
+	"""
 	if _from[0] < _to[0]:
 		print(f"DOWN from {_from} to {_to}")
 		return ActionType.MOVE_DOWN
