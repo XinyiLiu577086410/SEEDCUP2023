@@ -7,34 +7,55 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 using namespace std;
 using namespace seedcup;
-#define DEMO_FLAG
-#define Nmap 15
+#define INF 0x7f7f7f7f
 #define MY_NAME "gttaVX/u5z5AmTBRenaVDeEmUyrCUKA//YZtLOiaF/k="
-static bool Reachable[Nmap][Nmap];
-static int Distance[Nmap][Nmap];
-Area Map[Nmap][Nmap];
+struct route{
+  int len = INF;
+  vector<pair<int,int>> path;
+  vector<pair<int,int>> next;
+};
 
-static void dfs(GameMsg & msg, int x, int y) {
-  if(msg.blocks[Map[x][y].block_id]->removable);
+
+struct path_t{
+  map<pair<int,int>, route> routes;
+} analyzeRes;
+
+// return shortest path
+path_t Dijstra(GameMsg & msg) {
+  path_t res;
+  /* algorithm */
+  return res;
 }
+
 
 void TakeMyAction(GameMsg & msg, vector<ActionType>& MyAction) {
-  do{
-    int l1 = msg.grid.size(), l2 = msg.grid[0].size();
-    for(int i = 0; i < l1; i++) {
-      for(int j = 0; j < l2; j++) {
-        Map[i][j] = msg.grid[i][j];
+  path_t paths = Dijstra(msg);
+  Player self = *msg.players[msg.player_id];
+  set<Player> enemy, engagedEnemy;
+  for(auto p : msg.players) {
+    if(p.first == msg.player_id) continue;
+    else enemy.insert(*p.second);
+  }
+  for(auto p : enemy) {
+    if(paths.routes[{p.x, p.y}].len != INF){
+      engagedEnemy.insert(p);
+    }
+  }
+  if(engagedEnemy.size() == 0) {
+    static Block nearestBlock;
+    int nearestLen = INF;
+    for(auto p : msg.blocks){
+      Block thisBlock = *p.second;
+      if(paths.routes[{thisBlock.x,thisBlock.y}].len < nearestLen) {
+        nearestBlock = thisBlock;
+        nearestLen = paths.routes[{thisBlock.x,thisBlock.y}].len;
       }
     }
-  } while(0);
-  for(auto & p : msg.players) {
-    if(p.second->player_name == MY_NAME)
-      dfs(msg, p.second->x,p.second->y);
   }
 }
-
 
 int main() {
   SeedCup seedcup("../config.json", MY_NAME);
@@ -44,85 +65,29 @@ int main() {
     return ret;
   }
   cout << "init client success" << endl;
-  seedcup.RegisterCallBack(
-
-      [](GameMsg &msg, SeedCup &server) -> int {
-        
-        #ifdef DEMO_FLAG
-        {
-        // 打印自己的id
-        std::cout << "self:" << msg.player_id << std::endl;
-
-        // 打印地图
-        cout << endl << endl;
-        auto &grid = msg.grid;
-        for (int i = 0; i < msg.grid.size(); i++) {
-          for (int j = 0; j < msg.grid.size(); j++) {
-            auto &area = grid[i][j];
-            if (grid[i][j].block_id != -1) {
-              if (msg.blocks[grid[i][j].block_id]->removable) {
-                cout << "0 ";
-              } else {
-                cout << "9 ";
-              }
-            } else if (area.player_ids.size() != 0) {
-              cout << "1 ";
-            } else if (area.bomb_id != -1) {
-              cout << "8 ";
-            } else if (area.item != seedcup::NULLITEM) {
-              switch (area.item) {
-              case seedcup::BOMB_NUM:
-                cout << "a ";
-                break;
-              case seedcup::BOMB_RANGE:
-                cout << "b ";
-                break;
-              case seedcup::INVENCIBLE:
-                cout << "c ";
-                break;
-              case seedcup::SHIELD:
-                cout << "d ";
-                break;
-              case seedcup::HP:
-                cout << "e ";
-                break;
-              default:
-                cout << "**";
-                break;
-              }
-            } else {
-              cout << "__";
-            }
-          }
-          cout << endl;
-        }
-        return server.TakeAction((ActionType)(5));
-        }
-        // #endif
-        #else
-        vector<ActionType> MyAction;
-        TakeMyAction(msg, MyAction);
-        for(auto p : MyAction) {
-          int status;
-          if(status = server.TakeAction(p))
-            return status;
-        }
-        return 0;
-        #endif
-      },
-      [](int player_id, const std::vector<std::pair<int, int>> &scores, const std::vector<int> &winners) -> int {
-        // 打印所有人的分数
-        for (int i = 0; i < scores.size(); i++) {
-          cout << "[" << scores[i].first << "," << scores[i].second << "] ";
-        }
-        // 打印获胜者列表
-        cout << endl;
-        for (int i = 0; i < winners.size(); i++) {
-          cout << winners[i] << " ";
-        }
-        cout << endl;
-        return 0;
-      });
+  seedcup.RegisterCallBack
+  (
+    /* argument 1 */
+    [](GameMsg &msg, SeedCup &server) -> int { 
+      vector<ActionType> MyAction;
+      TakeMyAction(msg, MyAction);
+      for(auto p : MyAction) {
+        int status;
+        if(status = server.TakeAction(p))
+          return status; /* report exception */
+      }
+      return 0;
+    }
+    ,
+    /* argument 2 */
+    [](int player_id, const std::vector<std::pair<int, int>> &scores, const std::vector<int> &winners) -> int {
+        /* 打印所有人的分数 */
+        for (int i = 0; i < scores.size(); i++) {cout << "[" << scores[i].first << "," << scores[i].second << "] ";}
+        /* 打印获胜者列表 */
+        cout << endl; for (int i = 0; i < winners.size(); i++) {cout << winners[i] << " ";}
+        cout << endl;return 0;
+      }
+  );
   ret = seedcup.Run();
   if (ret != 0) {
     std::cout << seedcup.get_last_error();

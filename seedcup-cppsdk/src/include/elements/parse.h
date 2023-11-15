@@ -81,13 +81,14 @@ struct Area {
   int y = -1;
   int bomb_id = -1;
   int block_id = -1;
-  ItemType item = NULLITEM;
   std::unordered_set<int> player_ids;
+  ItemType item = NULLITEM;
 };
 
 struct GameMsg {
   int player_id;
   int game_round;
+  /*           ~~~~key:id, value:item~~~~~~  */
   std::unordered_map<int, std::shared_ptr<Player>> players;
   std::unordered_map<int, std::shared_ptr<Bomb>> bombs;
   std::unordered_map<int, std::shared_ptr<Block>> blocks;
