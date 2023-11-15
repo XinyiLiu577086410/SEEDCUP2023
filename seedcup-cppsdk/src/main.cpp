@@ -34,7 +34,6 @@ path_t Dijstra(GameMsg & msg) {
 
 /* Indentification Friend or Foe */
 void IFF(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, path_t& paths) {
-  Player self = *msg.players[msg.player_id];
   for(auto p : msg.players) {
     if(p.first == msg.player_id) continue;
     else enemy.insert(*p.second);
@@ -49,7 +48,7 @@ void IFF(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, path_t& p
 
 void SelectBlock(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, path_t& paths, Block& nearestBlock) {
   int nearestLen = INF;
-  for(auto p : msg.blocks){
+  for(auto p : msg.blocks) {
     Block thisBlock = *p.second;
     if(paths.routes[{thisBlock.x,thisBlock.y}].len < nearestLen) {
       nearestBlock = thisBlock;
@@ -58,15 +57,21 @@ void SelectBlock(GameMsg & msg, set<Player>& enemy, set<Player>& engagedEnemy, p
   }
 }
 
+/*  */
+void GoTo(std::pair<int,int>) {
 
-void GoTo(){}
+}
 
 void TakeMyAction(GameMsg & msg, vector<ActionType>& MyAction) {
-  
+  // 躲
+  // 选路 
+  // 走
+  // 攻击
   path_t paths = Dijstra(msg);
   Player self = *msg.players[msg.player_id];
   set<Player> enemy, engagedEnemy;
   IFF(msg, enemy, engagedEnemy, paths);
+  Player self = *msg.players[msg.player_id];
   static Block nearestBlock;
   static bool onTheWay = false;
   static int lastStep = 0;
