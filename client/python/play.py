@@ -117,7 +117,7 @@ def search(ignore : list, pos : list, resp : PacketResp, type = ObjType.Player |
     for i in range(4):
         dpos = [pos[0]+direct[i][0], pos[1]+direct[i][1]]
         if dpos == ignore:
-            return False
+            continue
         # print(f"{pos[0]},{pos[1]} Search at {dpos[0]},{dpos[1]}")
         if search(pos, dpos, resp, type):
             route.append(pos)
@@ -282,11 +282,10 @@ if __name__ == "__main__":
         
     resp = client.recv()
 
-    if stat_resp.type == PacketType.ActionResp:
+    if resp.type == PacketType.ActionResp:
         gContext["gameBeginFlag"] = True
-        gContext["playerID"] = stat_resp.data.player_id
+        gContext["playerID"] = resp.data.player_id
 
-    freshed = False
     while not isConnected(resp, ObjType.Player):
         print("Not Connected!")
         if not canMove:
@@ -321,7 +320,6 @@ if __name__ == "__main__":
                     gmove(route, resp)
                     if len(route) == 4:
                         resp = client.recv()
-                        freshed = True
                         actionReq = ActionReq(gContext["playerID"], ActionType.PLACED)
                         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
                         client.send(actionPacket)
@@ -333,7 +331,6 @@ if __name__ == "__main__":
                         client.send(actionPacket)
                         print(f"bomb putted")
                         resp = client.recv()
-                        freshed = True
                         gmove([route[2],route[1]], resp)
                         actionReq = ActionReq(gContext["playerID"], ActionType.SILENT)
                         actionPacket = PacketReq(PacketType.ActionReq, actionReq)
@@ -344,8 +341,5 @@ if __name__ == "__main__":
                         client.send(actionPacket)
                         print(f"bomb putted")
 
-        if not freshed:
-            resp = client.recv()
-        else:
-            freshed = False
+        resp = client.recv()
     print("Connected!\n")
