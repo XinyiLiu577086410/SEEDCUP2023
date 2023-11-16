@@ -12,7 +12,7 @@ def PlaceBomb() -> List[ActionReq]:
 def GoToSafeZone() -> List[ActionReq]:
     return None
 def Play(parsedMap: List[List]) -> List:
-    '''
+    
     ActionList = []
     ActionList += GoToSafeZone()
     ActionList += GoToItem()
@@ -20,7 +20,7 @@ def Play(parsedMap: List[List]) -> List:
     ActionList += PlaceBomb()
     ActionList += GotoSafeZone()
     return ActionList
-    '''
+
 
 from base import *
 from req import *
@@ -30,7 +30,6 @@ from logger import logger
 import json
 import socket
 import sys
-
 
 class Client(object):
     """Client obj that send/recv packet.
@@ -100,10 +99,12 @@ def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
 
-def ParseMap(map:List[Map]) -> List[List[Map]]:
+def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]]):
+    '''return parsed map and routes to all grids'''
     parsedMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
+
     return parsedMap
 
 
