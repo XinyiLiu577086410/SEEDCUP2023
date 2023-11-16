@@ -100,7 +100,7 @@ def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
 
-def ParseMap(map:List[Map]) -> List[List[Map]]:
+def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]]):
     parsedMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
