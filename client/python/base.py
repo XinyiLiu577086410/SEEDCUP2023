@@ -90,7 +90,9 @@ class JsonBase(object):
         return self
 
 class PacketType(JsonIntEnum):
+    # client to server
     InitReq = 1
     ActionReq = 2
+    # server to client
     ActionResp = 3
     GameOver = 4
