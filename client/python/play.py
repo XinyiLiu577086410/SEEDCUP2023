@@ -4,23 +4,22 @@ from req import *
 def GotToSafeZone() -> List[ActionReq]:
     return []
 def GoToItem() -> List[ActionReq]:
-    return None
+    return []
 def GoToRemovableBlock() -> List[ActionReq]:
-    return None
+    return []
 def PlaceBomb() -> List[ActionReq]:
-    return None
+    return []
 def GoToSafeZone() -> List[ActionReq]:
-    return None
-def Play(parsedMap: List[List]) -> List:
-    '''
+    return []
+
+def Play(parsedMap: List[List], route : List[List[List(tuple)]]) -> List:
     ActionList = []
     ActionList += GoToSafeZone()
     ActionList += GoToItem()
     ActionList += GoToRemovableBlock()
     ActionList += PlaceBomb()
-    ActionList += GotoSafeZone()
+    ActionList += GoToSafeZone()
     return ActionList
-    '''
 
 from base import *
 from req import *
@@ -117,7 +116,8 @@ gContext = {
 
 
 Nmap = 15
-MyMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
+MyMap = []
+Routes = []
 if __name__ == "__main__":
     # init game
     client = Client()
@@ -132,8 +132,8 @@ if __name__ == "__main__":
         logger.error("init failed")
         exit(-1)
     while(not gContext["gameOverFlag"]):
-        MyMap = ParseMap(resp.data.map)
-        requests = Play(MyMap)
+        MyMap, Routes = ParseMap(resp.data.map)
+        requests = Play(MyMap, Routes)
         for req in requests:
             client.send(PacketReq(PacketType.ActionReq, req))
         resp = client.recv()    
