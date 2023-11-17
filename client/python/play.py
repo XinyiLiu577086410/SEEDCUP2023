@@ -1,27 +1,5 @@
 from typing import List
 from req import *
-
-def GotToSafeZone() -> List[ActionReq]:
-    return []
-def GoToItem() -> List[ActionReq]:
-    return None
-def GoToRemovableBlock() -> List[ActionReq]:
-    return None
-def PlaceBomb() -> List[ActionReq]:
-    return None
-def GoToSafeZone() -> List[ActionReq]:
-    return None
-def Play(parsedMap: List[List]) -> List:
-    '''
-    ActionList = []
-    ActionList += GoToSafeZone()
-    ActionList += GoToItem()
-    ActionList += GoToRemovableBlock()
-    ActionList += PlaceBomb()
-    ActionList += GotoSafeZone()
-    return ActionList
-    '''
-
 from base import *
 from req import *
 from resp import *
@@ -31,11 +9,10 @@ import json
 import socket
 import sys
 
-#寻路库
+# 寻路库
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
-#
+from pathfinding.finder.dijkstra import DijkstraFinder
 
 class Client(object):
     """Client obj that send/recv packet.
@@ -104,58 +81,102 @@ def cliGetInitReq():
     """Get init request from user input."""
     return InitReq(config.get("player_name"))
 
-#给定二维数组 返回 路径*215*len（Map）
-def find_all_paths(parsedmap: List[List[Map]]) -> List[List[List[tuple[int, int]]]]:
-    paths = []
+# #给定二维数组 返回 路径*215*len（Map）
+# def find_all_paths(parsedmap: List[List[Map]]) -> List[List[List[tuple[int, int]]]]:
+#     paths = []
 
-    player_position = None  # 保存玩家的位置
+#     player_position = None  # 保存玩家的位置
 
-    # 遍历 parsedmap 找到玩家的位置
-    for row_idx, row in enumerate(parsedmap):
-        for col_idx, cell in enumerate(row):
-            for obj in cell.objs:
-                if obj.type == type:
-                    if type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-                        if player_position == None :
-                            player_position = (row_idx, col_idx)
-                            break
+#     # 遍历 parsedmap 找到玩家的位置
+#     for row_idx, row in enumerate(parsedmap):
+#         for col_idx, cell in enumerate(row):
+#             for obj in cell.objs:
+#                 if obj.type == type:
+#                     if type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+#                         if player_position == None :
+#                             player_position = (row_idx, col_idx)
+#                             break
 
-    if player_position is None:
-        raise ValueError("玩家位置未找到")
+#     if player_position is None:
+#         raise ValueError("玩家位置未找到")
 
-    # 创建网格
-    matrix = [[1 for _ in range(len(parsedmap[0]))] for _ in range(len(parsedmap))]
-    for row_idx, row in enumerate(parsedmap):
-        for col_idx, cell in enumerate(row):
-            for obj in cell.objs:
-                if obj.type == 3:  # 如果 type 为 3，表示该点不可通过
-                    matrix[row_idx][col_idx] = 0
-                else:
-                    matrix[row_idx][col_idx] = 1
+#     # 创建网格
+#     matrix = [[1 for _ in range(len(parsedmap[0]))] for _ in range(len(parsedmap))]
+#     for row_idx, row in enumerate(parsedmap):
+#         for col_idx, cell in enumerate(row):
+#             for obj in cell.objs:
+#                 if obj.type == 3:  # 如果 type 为 3，表示该点不可通过
+#                     matrix[row_idx][col_idx] = 0
+#                 else:
+#                     matrix[row_idx][col_idx] = 1
 
-    grid = Grid(matrix=matrix)
+#     grid = Grid(matrix=matrix)
 
-    # 寻找路径
-    for row_idx, row in enumerate(parsedmap):
-        row_paths = []
-        for col_idx, _ in enumerate(row):
-            end_position = (row_idx, col_idx)
-            finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
-            path, _ = finder.find_path(grid.node(player_position[0], player_position[1]),
-                                       grid.node(end_position[0], end_position[1]), grid)
-            row_paths.append(path)
+#     # 寻找路径
+#     for row_idx, row in enumerate(parsedmap):
+#         row_paths = []
+#         for col_idx, _ in enumerate(row):
+#             end_position = (row_idx, col_idx)
+#             finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
+#             path, _ = finder.find_path(grid.node(player_position[0], player_position[1]),
+#                                        grid.node(end_position[0], end_position[1]), grid)
+#             row_paths.append(path)
 
-        paths.append(row_paths)
+#         paths.append(row_paths)
 
-    return paths
+#     return paths
 
-def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple[int,int]]]]):
-    parsedMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
+
+
+def GotToSafeZone() -> List[ActionReq]:
+    return []
+def GoToItem() -> List[ActionReq]:
+    return None
+def GoToRemovableBlock() -> List[ActionReq]:
+    return None
+def PlaceBomb() -> List[ActionReq]:
+    return None
+def GoToSafeZone() -> List[ActionReq]:
+    return None
+def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> List:
+    '''
+    ActionList = []
+    ActionList += GoToSafeZone()
+    ActionList += GoToItem()
+    ActionList += GoToRemovableBlock()
+    ActionList += PlaceBomb()
+    ActionList += GotoSafeZone()
+    return ActionList
+    '''
+
+
+
+
+def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], List[List[List[tuple]]], tuple):
+    parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    # accessablePotential = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    playerPosition = None
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
-    
-    paths = find_all_paths(parsedMap)
-    return parsedMap, paths
+        for obj in grid.objs:
+            if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                playerPosition = (grid.x, grid.y)
+            if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
+                accessableNow[grid.x][grid.y] = 0
+    # an abbreviation of pathfinding grid
+    pfGrid = Grid(matrix=accessableNow)
+    for grid in map:
+        end_position = (grid.x, grid.y)
+        pfGrid.cleanup()
+        finder = DijkstraFinder(diagonal_movement=DiagonalMovement.never)
+        newPath, _ = finder.find_path(pfGrid.node(playerPosition[0], playerPosition[1]),
+                                       pfGrid.node(end_position[0], end_position[1]), pfGrid)
+        finder.
+        newPath1 = [(newPath[i].x, newPath[i].y) for i in range(len(newPath))]
+        paths[grid.x][grid.y] = newPath1
+    return parsedMap, paths, playerPosition
 
 
 # only used in play.py
@@ -167,9 +188,11 @@ gContext = {
 }
 
 
-Nmap = 15
-MyMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
+MapEdgeLength = 15
 if __name__ == "__main__":
+    myMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    playerPosition = None
     # init game
     client = Client()
     client.connect()
@@ -183,10 +206,11 @@ if __name__ == "__main__":
         logger.error("init failed")
         exit(-1)
     while(not gContext["gameOverFlag"]):
-        MyMap = ParseMap(resp.data.map)
-        requests = Play(MyMap)
-        for req in requests:
-            client.send(PacketReq(PacketType.ActionReq, req))
+        myMap, paths, playerPosition = ParseMap(resp.data.map)
+        print(paths)
+        exit(0)
+        requests = Play(myMap, paths, playerPosition)
+        client.send(PacketReq(PacketType.ActionReq, requests))
         resp = client.recv()    
         if resp.type == PacketType.GameOver:
             gContext["gameOverFlag"] = True
