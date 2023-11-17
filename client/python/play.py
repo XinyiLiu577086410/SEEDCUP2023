@@ -105,37 +105,45 @@ def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
 #给定二维数组 返回 路径*215*len（Map）
-def find_all_paths(map_grid: List[List[Map]]) -> List[List[List[tuple[int, int]]]]:
+def find_all_paths(parsedmap: List[List[Map]]) -> List[List[List[tuple[int, int]]]]:
     paths = []
 
-    
+    player_position = None  # 保存玩家的位置
 
-    for start_x in range(len(map_grid)):
+    # 遍历 parsedmap 找到玩家的位置
+    for row_idx, row in enumerate(parsedmap):
+        for col_idx, cell in enumerate(row):
+            for obj in cell.objs:
+                if obj.type == type:
+                    if type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                        if player_position == None :
+                            player_position = (row_idx, col_idx)
+                            break
+
+    if player_position is None:
+        raise ValueError("玩家位置未找到")
+
+    # 创建网格
+    matrix = [[1 for _ in range(len(parsedmap[0]))] for _ in range(len(parsedmap))]
+    for row_idx, row in enumerate(parsedmap):
+        for col_idx, cell in enumerate(row):
+            for obj in cell.objs:
+                if obj.type == 3:  # 如果 type 为 3，表示该点不可通过
+                    matrix[row_idx][col_idx] = 0
+                else:
+                    matrix[row_idx][col_idx] = 1
+
+    grid = Grid(matrix=matrix)
+
+    # 寻找路径
+    for row_idx, row in enumerate(parsedmap):
         row_paths = []
-        for start_y in range(len(map_grid[0])):
-            start = map_grid[start_x][start_y]
-            
-            # 创建网格
-            matrix = [[1 for pnt in range(len(map_grid[0]))] for pnt in range(len(map_grid))]
-            for x in range(len(map_grid)):
-                for y in range(len(map_grid[0])):
-                    if any(obj.type == 3 for obj in map_grid[x][y].objs):
-                        matrix[x][y] = 0
-                    else:
-                        matrix[x][y] = 1
-
-            grid = Grid(matrix=matrix)
-
-            # 寻找路径
-            path_data = []
-            for end_x in range(len(map_grid)):
-                for end_y in range(len(map_grid[0])):
-                    end = map_grid[end_x][end_y]
-                    finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
-                    path, pnt = finder.find_path(grid.node(start.x, start.y), grid.node(end.x, end.y), grid)
-                    path_data.append(path)
-
-            row_paths.append(path_data)
+        for col_idx, _ in enumerate(row):
+            end_position = (row_idx, col_idx)
+            finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
+            path, _ = finder.find_path(grid.node(player_position[0], player_position[1]),
+                                       grid.node(end_position[0], end_position[1]), grid)
+            row_paths.append(path)
 
         paths.append(row_paths)
 
