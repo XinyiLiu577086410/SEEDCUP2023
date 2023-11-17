@@ -100,7 +100,6 @@ def cliGetInitReq():
 
 
 def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]]):
-    '''return parsed map and routes to all grids'''
     parsedMap = [[Map() for i in range(Nmap)] for j in range(Nmap)]
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
