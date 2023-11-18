@@ -92,12 +92,51 @@ def GoToRemovableBlock() -> List[ActionReq]:
     return None
 def PlaceBomb() -> List[ActionReq]:
     return None
-def GoToSafeZone() -> List[ActionReq]:
-    return None
+
+
+def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> List[ActionReq]:
+    def CheckDangerZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> (bool, list[tuple]):
+        inDangerZone = False
+        dangerousGrid = []
+        directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
+        for x in range(MapEdgeLength):
+            for y in range(MapEdgeLength):
+                if len(parsedMap[x][y].objs):
+                    for obj in parsedMap[x][y].objs:
+                        if obj.type == ObjType.Bomb:
+                            # print(f"Bomb on{(x,y)}")
+                            for i in range(obj.property.bomb_range):
+                                for direction in directions:
+                                    gridToCheck = (x + direction[0] * (i+1), y + direction[1] * (i+1))
+                                    dangerousGrid.append(gridToCheck)
+                                    if gridToCheck == playerPosition:
+                                        inDangerZone = True
+        # print(dangerousGrid)
+        return inDangerZone, dangerousGrid
+
+    inDangerZone, dangerousGrid = CheckDangerZone(parsedMap, routes, playerPosition)
+    if not inDangerZone:
+        return []
+    # now player is in danger zone
+    # find the nearest safe grid
+    idealRoute = [tuple() for i in range(255)]
+    for x in range(MapEdgeLength):
+        for y in range(MapEdgeLength):
+            if not ((x,y) in dangerousGrid) and len(routes[x][y]) and len(routes[x][y]) < len(idealRoute):
+                idealRoute = routes[x][y]
+    if len(idealRoute) != 255:
+        return idealRoute[1:]
+    else:
+        # now no way to go
+        print("No grid to go!")
+        logger.warning("No grid to go!")
+
 def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> List:
-    '''
+
     ActionList = []
-    ActionList += GoToSafeZone()
+    ActionList += GoToSafeZone(parsedMap, routes, playerPosition)
+    print(ActionList)
+    '''
     ActionList += GoToItem()
     ActionList += GoToRemovableBlock()
     ActionList += PlaceBomb()
@@ -122,31 +161,14 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple)
                 playerPosition = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
-    # print("accessableNow:")
-    # for i in range(MapEdgeLength):
-    #     for j in range(MapEdgeLength):
-    #         print(accessableNow[i][j], end="  ")
-    #     print("\n")
-    
-    # pfGrid: an abbreviation of pathfinding grid
     pfGrid = Grid(matrix=accessableNow)
     for grid in map:
-        end_position = (grid.x, grid.y)
+        endPosition = (grid.x, grid.y)
         pfGrid.cleanup()
         finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
         newPath, _ = finder.find_path(pfGrid.node(playerPosition[1], playerPosition[0]),
-                                        pfGrid.node(end_position[1], end_position[0]), pfGrid)
-        '''
-        def node(self, x, y) -> GridNode:
-        """            ^~~^~~~~~
-        get node at position
-        :param x: x pos
-        :param y: y pos
-        :return:
-        """
-        return self.nodes[y][x]
-                          ^~~^~~~~~
-        '''
+                                      pfGrid.node(endPosition[1], endPosition[0]), pfGrid)
+                                      #reversed order here
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
     return parsedMap, paths, playerPosition
@@ -181,22 +203,22 @@ if __name__ == "__main__":
     while(not gContext["gameOverFlag"]):
         myMap, paths, playerPosition = ParseMap(resp.data.map)
         
-        print("map:")
-        for i in range(MapEdgeLength):
-            for j in range(MapEdgeLength):
-                if(len(myMap[i][j].objs) == 0):
-                    print("0", end="  ")
-                else:
-                    print("%d"%myMap[i][j].objs[0].type, end="  ")
-            print("\n")
-        print("paths:")
-        for i in range(MapEdgeLength):
-            for j in range(MapEdgeLength):
-                if len(paths[i][j]) == 0:
-                    print("0", end="  ")
-                else:
-                    print("1", end="  ")
-            print("\n")
+        # print("map:")
+        # for i in range(MapEdgeLength):
+        #     for j in range(MapEdgeLength):
+        #         if(len(myMap[i][j].objs) == 0):
+        #             print("0", end="  ")
+        #         else:
+        #             print("%d"%myMap[i][j].objs[0].type, end="  ")
+        #     print("\n")
+        # print("paths:")
+        # for i in range(MapEdgeLength):
+        #     for j in range(MapEdgeLength):
+        #         if len(paths[i][j]) == 0:
+        #             print("0", end="  ")
+        #         else:
+        #             print("1", end="  ")
+        #     print("\n")
        
         requests = Play(myMap, paths, playerPosition)
         client.send(PacketReq(PacketType.ActionReq, requests))
