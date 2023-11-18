@@ -12,11 +12,11 @@ class ItemType(JsonIntEnum):
 
 
 class ObjType(JsonIntEnum):
-    Null = 0
-    Player = 1
-    Bomb = 2
-    Block = 3
-    Item = 4
+    Null = 0    # 可通过  
+    Player = 1  # 可通过
+    Bomb = 2    # 不可通过
+    Block = 3   # 不可通过
+    Item = 4    # 可通过
 
 
 class Player(JsonBase):
