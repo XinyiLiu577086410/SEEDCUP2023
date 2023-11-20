@@ -108,6 +108,7 @@ x
 '''
 
 
+#zya
 def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], 
              playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
     '''
@@ -122,6 +123,7 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     pass
 
 
+#lxy
 def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                           playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
     '''
@@ -136,6 +138,7 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
     pass
 
 
+#xry
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                 playerPosition: tuple, enemyTable: dict) -> List[ActionReq]:
     '''
@@ -199,33 +202,6 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
             print("GoToSafeZone(): No grid to go!")
             logger.warning("GoToSafeZone: No grid to go!")
             return [], dangerousGrid
-
-
-
-def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple) -> List[ActionReq]:
-    '''
-    参数：
-        targets: 目标位置，是一个List，每个元素是一个tuple，表示坐标
-        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
-        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
-    返回值：
-        一个List，每个元素是一个ActionReq对象，表示一个动作请求
-    功能：
-        工具函数。也可以自己重复写相应的过程。
-        给定目标位置，返回一个动作请求列表，使得玩家能够向达最优目标位置前进
-    '''
-    routes = [tuple() for i in range(255)]
-    for target in targets:
-        if len(routes[target[0]][target[1]]) < len(routes):
-            routes = routes[target[0]][target[1]]
-    if len(routes) == 255:
-        print("GoTo() : No route to go!")
-        logger.warning("GoTo(): No route to go!")
-        return []
-    else:
-        print("Goto() : Heading to " + str(routes[-1]))
-        return routeToActionReq(routes)
-
 
 
 def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple) -> List[ActionReq]:
