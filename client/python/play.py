@@ -16,6 +16,7 @@ from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.finder.a_star import AStarFinder
 
 
+# copy from main.py
 class Client(object):
     """Client obj that send/recv packet.
     """
@@ -84,16 +85,6 @@ def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
 
-def GoToItem() -> List[ActionReq]:
-    return None
-def GoToRemovableBlock() -> List[ActionReq]:
-    return None
-def PlaceBomb() -> List[ActionReq]:
-    return None
-
-
-
-
 '''
 README:
 0) 在自己的分支上写代码，不要直接在main分支上写。通过pull request来合并代码
@@ -105,6 +96,8 @@ README:
 5) 函数以及关键要写注释，用中文。建议用Github Copilot + 人工修改。
 6) 请不要修改其他人的函数，如果有需要请提出
 7) 变量命名规范：小驼峰命名法， 函数命名规范：大驼峰命名法， 用英文全称，不要用拼音
+8) 缩进：Space 4
+9) 代码至少要进行语法测试，功能测试留到函数全部完成再进行
 ---------------->y
 |   地图说明：
 |   x 为行号
@@ -126,33 +119,35 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     返回值：
         一个List，每个元素是一个ActionReq对象，表示一个动作请求
     '''
+    pass
 
 
 def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                           playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
-     '''
-     参数：
-          parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
-          routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
-          playerPosition: 玩家当前的位置，是一个tuple，表示坐标
-          dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
-     返回值：
-          一个List，每个元素是一个ActionReq对象，表示一个动作请求
-     '''
+    '''
+    参数：
+        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+        dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    '''
+    pass
 
 
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                 playerPosition: tuple, enemyTable: dict) -> List[ActionReq]:
-        '''
-        参数：
-            parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
-            routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
-            playerPosition: 玩家当前的位置，是一个tuple，表示坐标
-            enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
-        返回值：
-            一个List，每个元素是一个ActionReq对象，表示一个动作请求
-        '''
-
+    '''
+    参数：
+        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+        enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    '''
+    pass
 
 def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                     playerPosition: tuple) ->(List[ActionReq], List[tuple]):
@@ -227,22 +222,9 @@ def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition
         print("GoTo() : No route to go!")
         logger.warning("GoTo(): No route to go!")
         return []
-        return [], dangerousGrid
     else:
-        # now player is in danger zone
-        # find the nearest safe grid (within minimum steps)
-        idealRoute = [tuple() for i in range(255)]
-        for x in range(MapEdgeLength):
-            for y in range(MapEdgeLength):
-                if not ((x,y) in dangerousGrid) and len(routes[x][y]) and len(routes[x][y]) < len(idealRoute):
-                    idealRoute = routes[x][y]
-        if len(idealRoute) != 255:
-            return routeToActionReq(idealRoute), dangerousGrid
-        else:
-            # now no way to go
-            print("GoToSafeZone(): No grid to go!")
-            logger.warning("GoToSafeZone: No grid to go!")
-            return [], dangerousGrid
+        print("Goto() : Heading to " + str(routes[-1]))
+        return routeToActionReq(routes)
 
 
 
@@ -294,10 +276,8 @@ def routeToActionReq(route: List[tuple]) -> List[ActionReq]:
             step[i] = ActionType.MOVE_UP
         else:
             logger.error("Wrong step!")
-    return step
-
-        print("Goto() : Heading to " + str(routes[-1]))
-        return routeToActionReq(routes)
+    print("Goto() : Heading to " + str(step[-1]))
+    return routeToActionReq(step)
         
 
 def routeToActionReq(route: List[tuple]) -> List[ActionReq]:
@@ -348,20 +328,6 @@ def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosi
     return actionReqList
 
 
-def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict):
-    '''
-    参数：
-        map: 服务器传来的map
-    返回值：
-        第一个值：解析后的map，是一个二维数组，每个元素是一个Map对象，代表一个格子
-        第二个值：解析后的路径，是一个三维数组，每个元素是一个二维数组，代表从当前我的位置到该格子的最短路径
-        第三个值：我的当前的位置，是一个tuple，表示坐标
-        第四个值：敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
-    功能：
-        工具函数。
-        将服务器传来的map解析成容易使用的数据结构，方便后续的操作。
-        方便随机访问和搜索。
-    '''
 def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple, enemyTable : dict) -> List[ActionReq]:
     '''
     参数：
@@ -378,9 +344,12 @@ def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosi
     actionReqList = [] # 要返回的动作请求列表
     tmpReqList, dangerousGrids =  GoToSafeZone(parsedMap, routes, playerPosition) # 先去安全区域，如果在安全区域则返回空列表，dangerousGrids表示危险的格子，是后续函数的参数
     actionReqList += tmpReqList 
-    ActionList += GoToItem(parsedMap, routes, playerPosition, dangerousGrids) # 去道具
-    ActionList += GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids) # 去可炸方块
-    ActionList += PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids) # 放炸弹, 并逃走
+    tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids) # 去道具
+    actionReqList += tmpReqList
+    tmpReqList = GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids) # 去可炸方块
+    actionReqList += tmpReqList
+    tmpReqList = PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids) # 放炸弹, 并逃走
+    actionReqList += tmpReqList
     return actionReqList
 
 
@@ -425,14 +394,13 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         pfGrid.cleanup()
         finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
         newPath, _ = finder.find_path(pfGrid.node(myPosition[1], myPosition[0]),
-        newPath, _ = finder.find_path(pfGrid.node(myPosition[1], myPosition[0]),
                                       pfGrid.node(endPosition[1], endPosition[0]), pfGrid)
+
                                       #reversed order here
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
     return parsedMap, paths, myPosition, enemyTable
-    return parsedMap, paths, myPosition, enemyTable
-
+\
 
 # only used in play.py
 '''
@@ -447,7 +415,6 @@ gContext = {
     "result": 0,
     "gameBeginFlag": False,
 }
-
 
 MapEdgeLength = 15
 if __name__ == "__main__":
