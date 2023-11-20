@@ -119,6 +119,10 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
     返回值：
         一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        工具函数。
+        如果玩家当前位置已经可以拾取道具，返回空列表
+        否则，返回一个去道具的动作请求列表
     '''
     pass
 
@@ -134,6 +138,10 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
         dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
     返回值：
         一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        工具函数。
+        如果玩家当前位置已经可以放炸弹，返回空列表
+        否则，返回一个去可炸方块的动作请求列表
     '''
     pass
 
@@ -149,6 +157,11 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
     返回值：
         一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        工具函数。
+        如果条件成熟，返回一个放炸弹并逃走的动作请求列表
+        如果玩家当前位置不可以放炸弹，返回空列表
+        要做安全性检查
     '''
     pass
 
@@ -162,6 +175,11 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     返回值：
         一个List，每个元素是一个ActionReq对象，表示一个动作请求
         一个List，每个元素是一个tuple，表示一个危险的格子
+    功能：
+        工具函数。
+        如果玩家在危险区域，返回一个动作请求列表，使得玩家能够逃离危险区域
+        如果玩家不在危险区域，返回空列表
+        同时返回一个危险的格子列表，是后续函数的参数
     '''
 
     def CheckDangerZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], 
