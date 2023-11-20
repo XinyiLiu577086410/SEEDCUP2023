@@ -84,8 +84,6 @@ def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
 
-def GotToSafeZone() -> List[ActionReq]:
-    return []
 def GoToItem() -> List[ActionReq]:
     return None
 def GoToRemovableBlock() -> List[ActionReq]:
@@ -94,8 +92,82 @@ def PlaceBomb() -> List[ActionReq]:
     return None
 
 
-def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> List[ActionReq]:
-    def CheckDangerZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> (bool, list[tuple]):
+
+
+'''
+README:
+0) 在自己的分支上写代码，不要直接在main分支上写。通过pull request来合并代码
+1) 可以修改你负责的函数，但是修改返回值和参数需要协商，修改函数名是不允许的
+2) 你可以自己添加函数，但是需要定义在你负责的函数之内
+3) 对函数的功能、参数和原型有疑问请提出
+4) 可以输出信息，请在信息前加上函数名，如 
+    logger.info("GoToItem(): xxxxxxx") 或 print("GoToItem(): xxxxxxx")
+5) 函数以及关键要写注释，用中文。建议用Github Copilot + 人工修改。
+6) 请不要修改其他人的函数，如果有需要请提出
+7) 变量命名规范：小驼峰命名法， 函数命名规范：大驼峰命名法， 用英文全称，不要用拼音
+---------------->y
+|   地图说明：
+|   x 为行号
+|   y 为列号
+|
+V
+x
+'''
+
+
+def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], 
+             playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
+    '''
+    参数：
+        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+        dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    '''
+
+
+def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+                          playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
+     '''
+     参数：
+          parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+          routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+          playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+          dangerousGrids: 危险的格子，是一个List，每个元素是一个tuple，表示坐标
+     返回值：
+          一个List，每个元素是一个ActionReq对象，表示一个动作请求
+     '''
+
+
+def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+                playerPosition: tuple, enemyTable: dict) -> List[ActionReq]:
+        '''
+        参数：
+            parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+            routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+            playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+            enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
+        返回值：
+            一个List，每个元素是一个ActionReq对象，表示一个动作请求
+        '''
+
+
+def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+                    playerPosition: tuple) ->(List[ActionReq], List[tuple]):
+    '''
+    参数：
+        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+        一个List，每个元素是一个tuple，表示一个危险的格子
+    '''
+
+    def CheckDangerZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], 
+                        playerPosition: tuple) -> (bool, List[tuple]):
         inDangerZone = False
         dangerousGrid = []
         directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
@@ -116,49 +188,125 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], pl
 
     inDangerZone, dangerousGrid = CheckDangerZone(parsedMap, routes, playerPosition)
     if not inDangerZone:
-        return []
-    # now player is in danger zone
-    # find the nearest safe grid
-    idealRoute = [tuple() for i in range(255)]
-    for x in range(MapEdgeLength):
-        for y in range(MapEdgeLength):
-            if not ((x,y) in dangerousGrid) and len(routes[x][y]) and len(routes[x][y]) < len(idealRoute):
-                idealRoute = routes[x][y]
-    if len(idealRoute) != 255:
-        return idealRoute[1:]
+        return [], dangerousGrid
     else:
-        # now no way to go
-        print("No grid to go!")
-        logger.warning("No grid to go!")
+        # now player is in danger zone
+        # find the nearest safe grid (within minimum steps)
+        idealRoute = [tuple() for i in range(255)]
+        for x in range(MapEdgeLength):
+            for y in range(MapEdgeLength):
+                if not ((x,y) in dangerousGrid) and len(routes[x][y]) and len(routes[x][y]) < len(idealRoute):
+                    idealRoute = routes[x][y]
+        if len(idealRoute) != 255:
+            return routeToActionReq(idealRoute), dangerousGrid
+        else:
+            # now no way to go
+            print("GoToSafeZone(): No grid to go!")
+            logger.warning("GoToSafeZone: No grid to go!")
+            return [], dangerousGrid
 
-def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple) -> List:
 
-    ActionList = []
-    ActionList += GoToSafeZone(parsedMap, routes, playerPosition)
-    print(ActionList)
+
+def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple) -> List[ActionReq]:
     '''
-    ActionList += GoToItem()
-    ActionList += GoToRemovableBlock()
-    ActionList += PlaceBomb()
-    ActionList += GotoSafeZone()
-    return ActionList
+    参数：
+        targets: 目标位置，是一个List，每个元素是一个tuple，表示坐标
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        工具函数。也可以自己重复写相应的过程。
+        给定目标位置，返回一个动作请求列表，使得玩家能够向达最优目标位置前进
     '''
+    routes = [tuple() for i in range(255)]
+    for target in targets:
+        if len(routes[target[0]][target[1]]) < len(routes):
+            routes = routes[target[0]][target[1]]
+    if len(routes) == 255:
+        print("GoTo() : No route to go!")
+        logger.warning("GoTo(): No route to go!")
+        return []
+    else:
+        print("Goto() : Heading to " + str(routes[-1]))
+        return routeToActionReq(routes)
+        
+
+def routeToActionReq(route: List[tuple]) -> List[ActionReq]:
+    '''
+    参数：
+        route: 一个List，每个元素是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        工具函数。
+        将一个坐标的路径转换成一个动作请求列表
+    '''
+    step = [ActionReq(0, 0) for i in range(len(route))]
+    for i in range(1, len(route)):
+        step[i] = (route[i][0] - route[i-1][0], route[i][1] - route[i-1][1])
+        if step[i][0] == 0 and step[i][1] == 1:
+            step[i] = ActionType.MOVE_RIGHT
+        elif step[i][0] == 0 and step[i][1] == -1:
+            step[i] = ActionType.MOVE_LEFT
+        elif step[i][0] == 1 and step[i][1] == 0:
+            step[i] = ActionType.MOVE_DOWN
+        elif step[i][0] == -1 and step[i][1] == 0:
+            step[i] = ActionType.MOVE_UP
+        else:
+            logger.error("Wrong step!")
+    return step
 
 
+def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple, enemyTable : dict) -> List[ActionReq]:
+    '''
+    参数：
+        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
+        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
+        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
+        enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
+    返回值：
+        一个List，每个元素是一个ActionReq对象，表示一个动作请求
+    功能：
+        主函数。
+        根据当前的游戏状态，返回一个动作请求列表，使得玩家能够在当前回合中达到最优状态
+    '''
+    actionReqList = [] # 要返回的动作请求列表
+    tmpReqList, dangerousGrids =  GoToSafeZone(parsedMap, routes, playerPosition) # 先去安全区域，如果在安全区域则返回空列表，dangerousGrids表示危险的格子，是后续函数的参数
+    actionReqList += tmpReqList 
+    ActionList += GoToItem(parsedMap, routes, playerPosition, dangerousGrids) # 去道具
+    ActionList += GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids) # 去可炸方块
+    ActionList += PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids) # 放炸弹, 并逃走
+    return actionReqList
 
 
-# def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], List[List[List[tuple]]], tuple):
-def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple):
+def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict):
+    '''
+    参数：
+        map: 服务器传来的map
+    返回值：
+        第一个值：解析后的map，是一个二维数组，每个元素是一个Map对象，代表一个格子
+        第二个值：解析后的路径，是一个三维数组，每个元素是一个二维数组，代表从当前我的位置到该格子的最短路径
+        第三个值：我的当前的位置，是一个tuple，表示坐标
+        第四个值：敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
+    功能：
+        工具函数。
+        将服务器传来的map解析成容易使用的数据结构，方便后续的操作。
+        方便随机访问和搜索。
+    '''
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     # accessablePotential = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
-    playerPosition = None
+    myPosition = None
+    enemyTable = {}
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
-            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and playerPosition is None:
-                playerPosition = (grid.x, grid.y)
+            if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
+                myPosition = (grid.x, grid.y)
+            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
+                enemyTable[obj.property.player_id] = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
     pfGrid = Grid(matrix=accessableNow)
@@ -166,15 +314,18 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple)
         endPosition = (grid.x, grid.y)
         pfGrid.cleanup()
         finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
-        newPath, _ = finder.find_path(pfGrid.node(playerPosition[1], playerPosition[0]),
+        newPath, _ = finder.find_path(pfGrid.node(myPosition[1], myPosition[0]),
                                       pfGrid.node(endPosition[1], endPosition[0]), pfGrid)
                                       #reversed order here
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
-    return parsedMap, paths, playerPosition
+    return parsedMap, paths, myPosition, enemyTable
 
 
 # only used in play.py
+'''
+gContext: 全局变量，用于存储游戏状态
+'''
 gContext = {
     "playerID": -1,
     "gameOverFlag": False,
@@ -201,26 +352,8 @@ if __name__ == "__main__":
         logger.error("init failed")
         exit(-1)
     while(not gContext["gameOverFlag"]):
-        myMap, paths, playerPosition = ParseMap(resp.data.map)
-        
-        # print("map:")
-        # for i in range(MapEdgeLength):
-        #     for j in range(MapEdgeLength):
-        #         if(len(myMap[i][j].objs) == 0):
-        #             print("0", end="  ")
-        #         else:
-        #             print("%d"%myMap[i][j].objs[0].type, end="  ")
-        #     print("\n")
-        # print("paths:")
-        # for i in range(MapEdgeLength):
-        #     for j in range(MapEdgeLength):
-        #         if len(paths[i][j]) == 0:
-        #             print("0", end="  ")
-        #         else:
-        #             print("1", end="  ")
-        #     print("\n")
-       
-        requests = Play(myMap, paths, playerPosition)
+        myMap, paths, playerPosition, enemyTable = ParseMap(resp.data.map)
+        requests = Play(myMap, paths, playerPosition, enemyTable)
         client.send(PacketReq(PacketType.ActionReq, requests))
         resp = client.recv()    
         if resp.type == PacketType.GameOver:
