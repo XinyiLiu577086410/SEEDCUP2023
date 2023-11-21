@@ -148,7 +148,7 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 
 #xry
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
-                playerPosition: tuple[int, int], enemyTable: dict) -> List[ActionReq]:
+                playerPosition: tuple[int, int], enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
     '''
     参数：
         parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
@@ -178,7 +178,7 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         return False
     
     # 检查当前位置能否放下炸弹
-    assert(len(parsedMap[playerPosition[0]][playerPosition[1]].objs), "the grid where player is shouldn't be empty")
+    assert len(parsedMap[playerPosition[0]][playerPosition[1]].objs), "the grid where player is shouldn't be empty"
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Bomb:
             return []
@@ -188,7 +188,7 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
             bombRange = obj.property.bomb_range
-    assert(bombRange, "player's bomb range should never be zero")
+    assert bombRange, "player's bomb range should never be zero"
 
     directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
     brickBombed = []
@@ -322,34 +322,7 @@ def routeToActionReq(route: List[tuple]) -> List[ActionReq]:
         else:
             logger.error("Wrong step!")
     print("Goto() : Heading to " + str(step[-1]))
-    return routeToActionReq(step)
-        
-
-def routeToActionReq(route: List[tuple]) -> List[ActionReq]:
-    '''
-    参数：
-        route: 一个List，每个元素是一个tuple，表示坐标
-    返回值：
-        一个List，每个元素是一个ActionReq对象，表示一个动作请求
-    功能：
-        工具函数。
-        将一个坐标的路径转换成一个动作请求列表
-    '''
-    step = [ActionReq(0, 0) for i in range(len(route))]
-    for i in range(1, len(route)):
-        step[i] = (route[i][0] - route[i-1][0], route[i][1] - route[i-1][1])
-        if step[i][0] == 0 and step[i][1] == 1:
-            step[i] = ActionType.MOVE_RIGHT
-        elif step[i][0] == 0 and step[i][1] == -1:
-            step[i] = ActionType.MOVE_LEFT
-        elif step[i][0] == 1 and step[i][1] == 0:
-            step[i] = ActionType.MOVE_DOWN
-        elif step[i][0] == -1 and step[i][1] == 0:
-            step[i] = ActionType.MOVE_UP
-        else:
-            logger.error("Wrong step!")
-    return step
-
+    return [ActionReq(gContext["playerID"], x) for x in step]
 
 def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple, enemyTable : dict) -> List[ActionReq]:
     '''
@@ -405,10 +378,6 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
                 myPosition = (grid.x, grid.y)
             if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
                 enemyTable[obj.property.player_id] = (grid.x, grid.y)
-            if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
-                myPosition = (grid.x, grid.y)
-            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
-                enemyTable[obj.property.player_id] = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
     pfGrid = Grid(matrix=accessableNow)
@@ -423,7 +392,6 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
     return parsedMap, paths, myPosition, enemyTable
-\
 
 # only used in play.py
 '''
@@ -457,8 +425,6 @@ if __name__ == "__main__":
         logger.error("init failed")
         exit(-1)
     while(not gContext["gameOverFlag"]):
-        myMap, paths, playerPosition, enemyTable = ParseMap(resp.data.map)
-        requests = Play(myMap, paths, playerPosition, enemyTable)
         myMap, paths, playerPosition, enemyTable = ParseMap(resp.data.map)
         requests = Play(myMap, paths, playerPosition, enemyTable)
         client.send(PacketReq(PacketType.ActionReq, requests))
