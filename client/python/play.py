@@ -148,7 +148,7 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 
 #xry
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
-                playerPosition: tuple, enemyTable: dict) -> List[ActionReq]:
+                playerPosition: tuple[int, int], enemyTable: dict) -> List[ActionReq]:
     '''
     参数：
         parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
@@ -163,7 +163,49 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         如果玩家当前位置不可以放炸弹，返回空列表
         要做安全性检查
     '''
-    pass
+    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+        if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
+            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
+                if obj.type == ObjType.Block:
+                    return True
+        return False
+    
+    def checkBombUseful(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+        if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
+            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
+                if obj.type == ObjType.Block and obj.property.removable == True:
+                    return True
+        return False
+    
+    # 检查当前位置能否放下炸弹
+    assert(len(parsedMap[playerPosition[0]][playerPosition[1]].objs), "the grid where player is shouldn't be empty")
+    for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
+        if obj.type == ObjType.Bomb:
+            return []
+    # 检查当前位置放下炸弹是否能炸到砖块
+    # 获取炸弹范围
+    bombRange = 0
+    for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
+        if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+            bombRange = obj.property.bomb_range
+    assert(bombRange, "player's bomb range should never be zero")
+
+    directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
+    brickBombed = []
+    for i in range(bombRange):
+        for direction in directions:
+            gridToCheck = (playerPosition[0] + direction[0] * (i+1), playerPosition[1] + direction[1] * (i+1))
+            if(checkBombBlocked(parsedMap, gridToCheck)):
+                directions.remove(direction)
+            if(checkBombUseful(parsedMap, gridToCheck)):
+                brickBombed.append(gridToCheck)
+    if len(brickBombed) == 0:
+        return []
+    
+    changedMap = parsedMap.copy()
+    changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"])))
+    escapeRoute, _ = GoToSafeZone(changedMap, routes, playerPosition)
+    return [ActionReq(gContext["playerID"], ActionType.PLACED)].extend(escapeRoute)
 
 def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                     playerPosition: tuple) ->(List[ActionReq], List[tuple]):
@@ -182,6 +224,13 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         同时返回一个危险的格子列表，是后续函数的参数
     '''
 
+    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+        if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
+            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
+                if obj.type == ObjType.Block:
+                    return True
+        return False
+
     def CheckDangerZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], 
                         playerPosition: tuple) -> (bool, List[tuple]):
         inDangerZone = False
@@ -196,6 +245,8 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                             for i in range(obj.property.bomb_range):
                                 for direction in directions:
                                     gridToCheck = (x + direction[0] * (i+1), y + direction[1] * (i+1))
+                                    if(checkBombBlocked(parsedMap, gridToCheck)):
+                                        directions.remove(direction)
                                     dangerousGrid.append(gridToCheck)
                                     if gridToCheck == playerPosition:
                                         inDangerZone = True
