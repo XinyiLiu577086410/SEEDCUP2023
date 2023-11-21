@@ -316,28 +316,6 @@ def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosi
     actionReqList = [] # 要返回的动作请求列表
     tmpReqList, dangerousGrids =  GoToSafeZone(parsedMap, routes, playerPosition) # 先去安全区域，如果在安全区域则返回空列表，dangerousGrids表示危险的格子，是后续函数的参数
     actionReqList += tmpReqList 
-    ActionList += GoToItem(parsedMap, routes, playerPosition, dangerousGrids) # 去道具
-    ActionList += GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids) # 去可炸方块
-    ActionList += PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids) # 放炸弹, 并逃走
-    return actionReqList
-
-
-def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple, enemyTable : dict) -> List[ActionReq]:
-    '''
-    参数：
-        parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
-        routes: 解析后的路径，是一个三维数组，每个元素是一个二维数组，每个元素是一个tuple，表示坐标
-        playerPosition: 玩家当前的位置，是一个tuple，表示坐标
-        enemyTable: 敌人的位置，是一个dict，key是player_id，value是一个tuple，表示坐标
-    返回值：
-        一个List，每个元素是一个ActionReq对象，表示一个动作请求
-    功能：
-        主函数。
-        根据当前的游戏状态，返回一个动作请求列表，使得玩家能够在当前回合中达到最优状态
-    '''
-    actionReqList = [] # 要返回的动作请求列表
-    tmpReqList, dangerousGrids =  GoToSafeZone(parsedMap, routes, playerPosition) # 先去安全区域，如果在安全区域则返回空列表，dangerousGrids表示危险的格子，是后续函数的参数
-    actionReqList += tmpReqList 
     tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids) # 去道具
     actionReqList += tmpReqList
     tmpReqList = GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids) # 去可炸方块
