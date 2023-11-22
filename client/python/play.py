@@ -275,8 +275,6 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     myPosition = None
     enemyTable = {}
-    myPosition = None
-    enemyTable = {}
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
