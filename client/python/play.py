@@ -124,6 +124,14 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         如果玩家当前位置已经可以拾取道具，返回空列表
         否则，返回一个去道具的动作请求列表
     '''
+    targets = []
+    for i in range(MapEdgeLength):
+        for j in range(MapEdgeLength):
+            if len(parsedMap[i][j].objs):
+                for obj in parsedMap[i][j].objs:
+                    if obj.type == ObjType.Item:
+                        targets.append((i,j))
+    GoTo(targets, routes, playerPosition)
     pass
 
 
@@ -143,12 +151,22 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
         如果玩家当前位置已经可以放炸弹，返回空列表
         否则，返回一个去可炸方块的动作请求列表
     '''
+    targets = []
+    directions = [[-1,0],[0,1],[1,0],[0,-1]]
+    for i in range(MapEdgeLength):
+        for j in range(MapEdgeLength):
+            for dir in directions:
+                if len(parsedMap[i+dir[0]][j+dir[1]].objs):
+                    for obj in parsedMap[i+dir[0]][j+dir[1]].objs:
+                        if obj.type == ObjType.Block and obj.property.removable == True:
+                            targets.append((i,j))
+    GoTo(targets, routes, playerPosition)
     pass
 
 
 #xry
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
-                playerPosition: tuple[int, int], enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
+                playerPosition: tuple, enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
     '''
     参数：
         parsedMap: 解析后的map，是一个二维数组，每个元素是一个Map对象
@@ -163,14 +181,14 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         如果玩家当前位置不可以放炸弹，返回空列表
         要做安全性检查
     '''
-    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple):
         if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
             for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
                 if obj.type == ObjType.Block:
                     return True
         return False
     
-    def checkBombUseful(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+    def checkBombUseful(parsedMap: List[List[Map]], gridToCheck : tuple):
         if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
             for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
                 if obj.type == ObjType.Block and obj.property.removable == True:
@@ -182,14 +200,16 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Bomb:
             return []
-    # 检查当前位置放下炸弹是否能炸到砖块
-    # 获取炸弹范围
+    # 检查
+    # a)获取炸弹范围
     bombRange = 0
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
             bombRange = obj.property.bomb_range
     assert bombRange, "player's bomb range should never be zero"
-
+    #wtf is this~~~~^~~~~~
+    # 注释要用中文
+    # b)检查炸弹是否能炸到砖块
     directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
     brickBombed = []
     for i in range(bombRange):
@@ -224,7 +244,7 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         同时返回一个危险的格子列表，是后续函数的参数
     '''
 
-    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple[int, int]):
+    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple):
         if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
             for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
                 if obj.type == ObjType.Block:
