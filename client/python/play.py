@@ -108,7 +108,7 @@ def NextToRemovableBlock(parsedMap: List[List[Map]], playerPosition: tuple) -> b
     return False
 
 
-def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+def GoToRemovableBlockAndPlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                           playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
     targets = []
     directions = [[-1,0],[0,1],[1,0],[0,-1]]
@@ -130,24 +130,9 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 
 
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
-                playerPosition: tuple, enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
-    return [ActionReq(gContext["playerID"], ActionType.PLACED)]
-    def checkBombBlocked(parsedMap: List[List[Map]], gridToCheck : tuple):
-        if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
-            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
-                if obj.type == ObjType.Block:
-                    return True
-        return False
-    
-    def checkBombUseful(parsedMap: List[List[Map]], gridToCheck : tuple):
-        if len(parsedMap[gridToCheck[0]][gridToCheck[1]].objs):
-            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
-                if obj.type == ObjType.Block and obj.property.removable == True:
-                    return True
-        return False
+                playerPosition: tuple[int, int], enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
     
     # 检查当前位置能否放下炸弹
-    assert len(parsedMap[playerPosition[0]][playerPosition[1]].objs), "the grid where player is shouldn't be empty"
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Bomb:
             return []
@@ -156,28 +141,16 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     bombRange = 0
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
         if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
-            bombRange = obj.property.bomb_range
-    assert bombRange, "player's bomb range should never be zero"
-    # b)检查炸弹是否能炸到砖块
-    directions = [[-1,0],[0,1],[1,0],[0,-1],[0,0]]
-    brickBombed = []
-    for i in range(bombRange):
-        for direction in directions:
-            if playerPosition[0] + direction[0] * (i+1) >= 0 and playerPosition[0] + direction[0] * (i+1) < MapEdgeLength and playerPosition[1] + direction[1] * (i+1) >= 0 and playerPosition[1] + direction[1] * (i+1) < MapEdgeLength:
-                gridToCheck = (playerPosition[0] + direction[0] * (i+1), playerPosition[1] + direction[1] * (i+1))
-                if(checkBombBlocked(parsedMap, gridToCheck)):
-                    directions.remove(direction)
-                if(checkBombUseful(parsedMap, gridToCheck)):
-                    brickBombed.append(gridToCheck)
-    if len(brickBombed) == 0:
-        return []
-    
+            bombRange = obj.property.bomb_range    
+    # b)检查放完炸弹后的安全性
     changedMap = parsedMap.copy()
     changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"])))
-    # escapeRoute, _ = GoToSafeZone(changedMap, routes, playerPosition)
-    ret = [ActionReq(gContext["playerID"], ActionType.PLACED)]
-    # ret.extend(escapeRoute)
-    return ret
+    _, desperate, _ = AnalyseDanger(changedMap, playerPosition)
+
+    if desperate:
+        return []
+    else:
+        return [ActionReq(gContext["playerID"], ActionType.PLACED)]
 
 # 仅当位于危险区域时调用
 def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
@@ -246,17 +219,17 @@ def insideGrids(grid : tuple) -> bool:
 
 
 def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosition: tuple, enemyTable : dict) -> List[ActionReq]:
-    isInDangerousZone, dangerousGrids = AnalyseDanger(parsedMap, playerPosition)
+    isInDangerousZone, desperate, dangerousGrids = AnalyseDanger(parsedMap, playerPosition)
     actionReqList = [] 
     if isInDangerousZone:
         tmpReqList =  GoToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
         actionReqList += tmpReqList 
     tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
-    tmpReqList = GoToRemovableBlock(parsedMap, routes, playerPosition, dangerousGrids)
+    tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
-    tmpReqList = PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids)
-    actionReqList += tmpReqList
+    # tmpReqList = PlaceBomb(parsedMap, routes, playerPosition, enemyTable, dangerousGrids)
+    # actionReqList += tmpReqList
     print(len(actionReqList))
     return actionReqList[0:2]
 
@@ -269,6 +242,7 @@ def Play(parsedMap: List[List[Map]], routes: List[List[List[tuple]]], playerPosi
 # 格局上所有危险位置，以及我是否在危险位置上
 def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple) -> (bool, bool, List[tuple]):
     inDangerZone = False
+    desperate = False
     dangerousGrids = []
     directions = [[-1,0],[0,1],[1,0],[0,-1]]
     def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
@@ -292,7 +266,7 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple) -> (bool, b
                                 if gridToCheck == playerPosition:
                                     inDangerZone = True
     # print(dangerousGrids)
-    return inDangerZone, dangerousGrids
+    return inDangerZone, desperate, dangerousGrids
 
 
 def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict):
@@ -357,6 +331,6 @@ if __name__ == "__main__":
         resp = client.recv()    
         if resp.type == PacketType.GameOver:
             gContext["gameOverFlag"] = True
-            gContext["result"] = resp.data.scores[gContext["playerID"]]
+            gContext["result"] = resp.data.scores
             logger.info(f"game over: {gContext['gameOverFlag']}, my score: {gContext['result']}")
             break
