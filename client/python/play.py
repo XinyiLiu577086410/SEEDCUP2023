@@ -124,14 +124,7 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         如果玩家当前位置已经可以拾取道具，返回空列表
         否则，返回一个去道具的动作请求列表
     '''
-    targets = []
-    for i in range(MapEdgeLength):
-        for j in range(MapEdgeLength):
-            if len(parsedMap[i][j].objs):
-                for obj in parsedMap[i][j].objs:
-                    if obj.type == ObjType.Item:
-                        targets.append((i,j))
-    GoTo(targets, routes, playerPosition)
+    
     pass
 
 
@@ -158,10 +151,9 @@ def GoToRemovableBlock(parsedMap: List[List[Map]], routes: List[List[List[tuple]
             for dir in directions:
                 if len(parsedMap[i+dir[0]][j+dir[1]].objs):
                     for obj in parsedMap[i+dir[0]][j+dir[1]].objs:
-                        if obj.type == ObjType.Block and obj.property.removable == True:
+                        if obj.type == ObjType.Block and obj.property.removable == True and not any(routes[i][j]) in dangerousGrids:
                             targets.append((i,j))
-    GoTo(targets, routes, playerPosition)
-    pass
+    GoTo(targets, routes, playerPosition, dangerousGrids)
 
 
 #xry
@@ -293,7 +285,7 @@ def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
             return [], dangerousGrid
 
 
-def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple) -> List[ActionReq]:
+def GoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple, dangerousGrid: List[List]) -> List[ActionReq]:
     '''
     参数：
         targets: 目标位置，是一个List，每个元素是一个tuple，表示坐标
