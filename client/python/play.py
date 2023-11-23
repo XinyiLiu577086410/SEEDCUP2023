@@ -116,7 +116,7 @@ def GoToRemovableBlockAndPlaceBomb(parsedMap: List[List[Map]], routes: List[List
         for j in range(MapEdgeLength):
             # 附近有可炸的砖块
             if NextToRemovableBlock(parsedMap, playerPosition):
-                return PlaceBomb(parsedMap, routes, playerPosition, {}, dangerousGrids)
+                return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
             if playerPosition == (i,j):
                 continue
             for dir in directions:
@@ -130,7 +130,7 @@ def GoToRemovableBlockAndPlaceBomb(parsedMap: List[List[Map]], routes: List[List
 
 
 def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
-                playerPosition: tuple, enemyTable: dict, dangerousGrids : List[tuple]) -> List[ActionReq]:
+                playerPosition: tuple, dangerousGrids : List[tuple]) -> List[ActionReq]:
     
     # 检查当前位置能否放下炸弹
     for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
@@ -161,15 +161,15 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     
 
 # 仅当位于危险区域时调用
-def GoToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+# 会冒险通过危险区域逃生
+def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                     playerPosition: tuple, dangerousGrids: List[List[tuple]]) -> List[ActionReq]: 
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
         print("GoToSafeZone(): I am so Desperate!")
     else:
         print("GoToSafeZone(): Escaping to " + str(EscapeRoute[-1]))
-    return routeToActionReq(EscapeRoute)
-
+    return routeToActionReq(EscapeRoute) + [ActionReq(gContext["playerID"], ActionType.SILENT)] # 避免后续的冒险行为
 
 def ChooseEscapeRoute(routes : List[List[List[tuple]]], 
                           playerPosition : tuple, dangerousGrids : List[tuple]) -> List[tuple]:
@@ -186,21 +186,23 @@ def ChooseEscapeRoute(routes : List[List[List[tuple]]],
         return EscapeRoute
 
 
-# 接口
+# 行走接口
 def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosition : tuple, dangerousGrids: List[List]) -> List[ActionReq]:
     targetPath = [tuple() for i in range(999)]
     for target in targets:
         if insideGrids(target) == False:
-            logger.error("safeGoTo(): Target out of range!")
+            logger.error("safeGoTo(): Target out of range, Check your arguements!")
         else:
-            if not any (routes[target[0]][target[1]]) in dangerousGrids:
-                if len(routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) < len(targetPath):
-                    targetPath = routes[target[0]][target[1]]
+            # 量词 any 为存在量词
+            # if not any(step in dangerousGrids for step in routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) < len(targetPath):
+            if all(step not in dangerousGrids for step in routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) < len(targetPath):
+                targetPath = routes[target[0]][target[1]]
     if len(targetPath) == 999:
         print("safeGoTo() : No route to go!")
         return []
     else:
         print("safeGoto() : Heading to " + str(targetPath[-1]))
+        print("safeGoTo() : Route: " + str(routes[target[0]][target[1]]))
         return routeToActionReq(targetPath) + [ActionReq(gContext["playerID"], ActionType.SILENT)]
         
 
@@ -229,49 +231,114 @@ def insideGrids(grid : tuple) -> bool:
     return grid[0] >= 0 and grid[0] < MapEdgeLength and grid[1] >= 0 and grid[1] < MapEdgeLength
 
 
+attackDistance = 3 # 攻击距离, 应避免太大，防止穷追不舍。没有攻击部分前生存性很好，添加攻击部分后生存性变差
+# 尽量让玩家冲向bot避免被炸弹堵死
+def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+              playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
+    targets = []
+    nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
+    for enemy in enemyPosition.keys():
+        if enemyPosition[enemy] in nowZoneOfBomb:
+            return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
+        else:
+            if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= attackDistance:
+                targets.append(enemyPosition[enemy])
+    print("seekEnemy(): calling safeGoTo()")
+    return safeGoTo(targets, routes, playerPosition, dangerousGrids)
+
+ChaseDistance = 100
+def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+              playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
+    targets = []
+    nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
+    for enemy in enemyPosition.keys():
+        if enemyPosition[enemy] in nowZoneOfBomb:
+            return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
+        else:
+            if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= ChaseDistance:
+                targets.append(enemyPosition[enemy])
+    print("seekEnemy(): calling safeGoTo()")
+    return safeGoTo(targets, routes, playerPosition, dangerousGrids)
+
+
+maxSpeed = 2
 def Play(Map: List[List[Map]]) -> List[ActionReq]:
-    parsedMap, routes, playerPosition, enemyTable, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
+    parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
     actionReqList = [] 
+
     if isInDangerousZone:
-        tmpReqList =  GoToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
+        tmpReqList =  EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
         actionReqList += tmpReqList 
+    if len(actionReqList) > maxSpeed:
+        return actionReqList[0:maxSpeed]
+    
+    tmpReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
+    actionReqList += tmpReqList
+    if len(actionReqList) > maxSpeed:
+        return actionReqList[0:maxSpeed]
+    
     tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
+    if len(actionReqList) > maxSpeed:
+        return actionReqList[0:maxSpeed]
+    
     tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
+    if len(actionReqList) > maxSpeed:
+        return actionReqList[0:maxSpeed]
+    
+    # 地图上没有可炸的砖块时追击敌人
+    tmpReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
+    actionReqList += tmpReqList
+    if len(actionReqList) > maxSpeed:
+        return actionReqList[0:maxSpeed]
+    
     return actionReqList
-
+    # 切片是为了防止server报警告导致画面跳动过于剧烈
 # def Desperate(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]),)
 
 
 # def DesperateEscape(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
 
 
-# 格局上所有危险位置，以及我是否在危险位置上
-def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: List[List[List[tuple]]]) -> (bool, bool, List[tuple]):
-    inDangerZone = False
-    desperate = False
-    dangerousGrids = []
-    directions = [[-1,0],[0,1],[1,0],[0,-1]]
+def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple) -> List[tuple]:
     def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
         for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
             if obj.type == ObjType.Block:
                 return True
-        return False  
+        return False 
+    directions = [[-1,0],[0,1],[1,0],[0,-1]]
+    ThisBombZone = []
+    bomb = None
+    for obj in parsedMap[Bomb[0]][Bomb[1]].objs:
+        if obj.type == ObjType.Bomb:
+            bomb = obj
+    x = Bomb[0]
+    y = Bomb[1]
+    for dis in range(obj.property.bomb_range + 1):
+        for direction in directions:
+            gridToCheck = (x + direction[0] * dis, y + direction[1] * dis)
+            if insideGrids(gridToCheck):
+                if(MeetBunker(parsedMap, gridToCheck)):
+                    continue
+                else:
+                    ThisBombZone.append(gridToCheck)
+    return ThisBombZone
+
+
+# 格局上所有危险位置，以及我是否在危险位置上
+def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: List[List[List[tuple]]]) -> (bool, bool, List[tuple]):
+    inDangerZone = False
+    desperate = False
+    dangerousGrids = [] 
+    
     for x in range(MapEdgeLength):
         for y in range(MapEdgeLength):
             for obj in parsedMap[x][y].objs:
                 if obj.type == ObjType.Bomb:
-                    for dis in range(obj.property.bomb_range + 1):
-                        for direction in directions:
-                            gridToCheck = (x + direction[0] * dis, y + direction[1] * dis)
-                            if insideGrids(gridToCheck):
-                                if(MeetBunker(parsedMap, gridToCheck)):
-                                    continue
-                                else:
-                                    dangerousGrids.append(gridToCheck)
-                                if gridToCheck == playerPosition:
-                                    inDangerZone = True
+                    dangerousGrids += FindZoneOfBomb(parsedMap, (x,y))
+    if playerPosition in dangerousGrids:
+        inDangerZone = True
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
         desperate = True
@@ -284,14 +351,14 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     myPosition = None
-    enemyTable = {}
+    enemyPosition = {}
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
             if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
                 myPosition = (grid.x, grid.y)
             if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
-                enemyTable[obj.property.player_id] = (grid.x, grid.y)
+                enemyPosition[obj.property.player_id] = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
     pfGrid = Grid(matrix=accessableNow)
@@ -306,7 +373,7 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
     InDangerousZone, Desperate, dangerousGrids = AnalyseDanger(parsedMap, myPosition, paths)
-    return parsedMap, paths, myPosition, enemyTable, InDangerousZone, Desperate, dangerousGrids
+    return parsedMap, paths, myPosition, enemyPosition, InDangerousZone, Desperate, dangerousGrids
 
 
 gContext = {
