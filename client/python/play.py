@@ -14,7 +14,7 @@ from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.finder.a_star import AStarFinder
 
 
-# copy from main.py
+# copy from main.py (a part of SDK demo)
 class Client(object):
     def __init__(self) -> None:
         self.config = config
@@ -171,6 +171,7 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
         print("GoToSafeZone(): Escaping to " + str(EscapeRoute[-1]))
     return routeToActionReq(EscapeRoute) + [ActionReq(gContext["playerID"], ActionType.SILENT)] # 避免后续的冒险行为
 
+
 def ChooseEscapeRoute(routes : List[List[List[tuple]]], 
                           playerPosition : tuple, dangerousGrids : List[tuple]) -> List[tuple]:
     EscapeRoute = [tuple() for i in range(255)]
@@ -246,6 +247,8 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
     print("seekEnemy(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
+
+# 追击敌人
 ChaseDistance = 100
 def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
@@ -261,6 +264,7 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
 
+# 移动速度
 maxSpeed = 2
 def Play(Map: List[List[Map]]) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
