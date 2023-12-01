@@ -10,9 +10,19 @@ import socket
 import sys
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
-from pathfinding.finder.dijkstra import DijkstraFinder
+# from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.finder.a_star import AStarFinder
 
+attackDistance = 3 # 攻击距离, 应避免太大
+ChaseDistance = 7
+maxSpeed = 2# 移动速度
+gContext = {
+    "playerID": -1,
+    "gameOverFlag": False,
+    "result": 0,
+    "gameBeginFlag": False,
+}
+MapEdgeLength = 15
 
 # copy from main.py (a part of SDK demo)
 class Client(object):
@@ -232,7 +242,6 @@ def insideGrids(grid : tuple) -> bool:
     return grid[0] >= 0 and grid[0] < MapEdgeLength and grid[1] >= 0 and grid[1] < MapEdgeLength
 
 
-attackDistance = 3 # 攻击距离, 应避免太大，防止穷追不舍。没有攻击部分前生存性很好，添加攻击部分后生存性变差
 # 尽量让玩家冲向bot避免被炸弹堵死
 def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
@@ -249,7 +258,6 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 
 
 # 追击敌人
-ChaseDistance = 100
 def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
     targets = []
@@ -264,8 +272,7 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
 
-# 移动速度
-maxSpeed = 2
+
 def Play(Map: List[List[Map]]) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
     actionReqList = [] 
@@ -380,14 +387,6 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     return parsedMap, paths, myPosition, enemyPosition, InDangerousZone, Desperate, dangerousGrids
 
 
-gContext = {
-    "playerID": -1,
-    "gameOverFlag": False,
-    "result": 0,
-    "gameBeginFlag": False,
-}
-
-MapEdgeLength = 15
 if __name__ == "__main__":
     myMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
