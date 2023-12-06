@@ -1,9 +1,9 @@
 {
   "player_name": "gttaVX/u5z5AmTBRenaVDeEmUyrCUKA//YZtLOiaF/k=",
-  "game_max_round": 1200,
+  "game_max_round": 1500,
   "game_print_map": true,
   "game_print_map_ascii": false,
-  "map_size": 15,
+  "map_size": 19,
   "player_num": 2,
   "player_hp": 1,
   "player_max_hp": 3,
@@ -23,15 +23,13 @@
   "wall_random": 25,
   "seed_random": 0,
   "result_path": "result.json",
-  "black_list":[],
-
+  "black_list": [],
   "timer_initial_value": 500,
   "round_interval_value": 500,
   "server_max_connection_num": 10,
   "epoll_max_events_num": 100,
   "epoll_timeout": 10,
   "log_print_stdout": true,
-
   "host": "0.0.0.0",
   "port": 9999
 }
