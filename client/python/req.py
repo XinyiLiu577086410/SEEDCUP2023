@@ -31,7 +31,9 @@ class ActionReq(JsonBase):
 class PacketReq(JsonBase):
     """The basic packet of communication with the server."""
 
-    def __init__(self, type: PacketType, data: Union[InitReq, ActionReq, List[ActionReq]]) -> None:
+    def __init__(
+        self, type: PacketType, data: Union[InitReq, List[ActionReq], ActionReq]
+    ) -> None:
         super().__init__()
         self.type = type
         self.data = data
