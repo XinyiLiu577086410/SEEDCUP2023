@@ -5,6 +5,7 @@ from req import *
 from resp import *
 from config import config
 from logger import logger
+import math
 import json
 import socket
 import sys
@@ -408,6 +409,8 @@ if __name__ == "__main__":
     else :
         logger.error("init failed")
         exit(-1)
+    MapEdgeLength = int(math.sqrt(len(resp.data.map)))
+    print(f"detected map edge length {MapEdgeLength}")
     while(not gContext["gameOverFlag"]):
         requests = Play(Map)
         client.send(PacketReq(PacketType.ActionReq, requests))
