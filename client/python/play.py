@@ -5,6 +5,7 @@ from req import *
 from resp import *
 from config import config
 from logger import logger
+import math
 import json
 import socket
 import sys
@@ -16,13 +17,14 @@ from pathfinding.finder.a_star import AStarFinder
 attackDistance = 3 # 攻击距离, 应避免太大
 ChaseDistance = 7
 maxSpeed = 2# 移动速度
+hasGloves = False# 能否推动炸弹
 gContext = {
     "playerID": -1,
     "gameOverFlag": False,
     "result": 0,
     "gameBeginFlag": False,
 }
-MapEdgeLength = 15
+MapEdgeLength = 19
 
 # copy from main.py (a part of SDK demo)
 class Client(object):
@@ -358,6 +360,8 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
 
 
 def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict, bool, bool, List[tuple]):
+    global maxSpeed
+    global hasGloves
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
@@ -368,6 +372,8 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         for obj in grid.objs:
             if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
                 myPosition = (grid.x, grid.y)
+                maxSpeed = obj.property.speed
+                hasGloves = obj.property.has_gloves
             if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
                 enemyPosition[obj.property.player_id] = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
@@ -403,6 +409,8 @@ if __name__ == "__main__":
     else :
         logger.error("init failed")
         exit(-1)
+    MapEdgeLength = int(math.sqrt(len(resp.data.map)))
+    print(f"detected map edge length {MapEdgeLength}")
     while(not gContext["gameOverFlag"]):
         requests = Play(Map)
         client.send(PacketReq(PacketType.ActionReq, requests))

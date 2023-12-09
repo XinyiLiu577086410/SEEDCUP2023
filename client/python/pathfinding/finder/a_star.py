@@ -6,7 +6,7 @@ from ..core.util import backtrace, bi_backtrace
 
 
 class AStarFinder(Finder):
-    def __init__(self, \heuristic=None, weight=1,
+    def __init__(self, heuristic=None, weight=1,
                  diagonal_movement=DiagonalMovement.never,
                  time_limit=TIME_LIMIT,
                  max_runs=MAX_RUNS):

@@ -1,9 +1,0 @@
-[2023-11-07 21:02:54.705] [seednet] [debug] setup logger success
-[2023-11-07 21:02:54.705] [seednet] [info] create and bind socket 0.0.0.0:9999 success!
-[2023-11-07 21:02:54.705] [seednet] [info] EpollTcpServer Init Success.
-[2023-11-07 21:02:54.705] [seednet] [info] Epoll op: add, Epoll events: read.
-[2023-11-07 21:02:54.705] [seednet] [info] Epoll op: add, Epoll events: read.
-[2023-11-07 21:03:07.508] [seednet] [info] accepting connection from 127.0.0.1.
-[2023-11-07 21:03:07.508] [seednet] [info] Epoll op: add, Epoll events: read.
-[2023-11-07 21:03:07.508] [seednet] [info] accepting all connections.
-[2023-11-07 21:03:07.508] [seednet] [info] fd 8 recv 39 bytes, content: {"data":{"player_name":"bot"},"type":1}
