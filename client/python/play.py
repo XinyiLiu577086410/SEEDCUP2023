@@ -317,7 +317,7 @@ def Play(Map: List[List[Map]]) -> List[ActionReq]:
     actionReqList = [] 
 
     if isInDangerousZone:
-        tmpReqList =  EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
+        tmpReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
         actionReqList += tmpReqList 
     if len(actionReqList) > maxSpeed:
         return actionReqList[0:maxSpeed]
@@ -379,7 +379,7 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[t
             gridToCheck = (x + direction[0] * dis, y + direction[1] * dis)
             if insideGrids(gridToCheck):
                 if(MeetBunker(parsedMap, gridToCheck)):
-                    continue
+                    directions.remove(direction)
                 else:
                     ThisBombZone.append(gridToCheck)
     return ThisBombZone
