@@ -112,9 +112,10 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     print("GoToItem(): weighting")
     orders = [6, 4, 3, 5, 1, 2, 7]
     for order in orders:
-        decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids)
-        if len(decision):
-            return decision
+        if len(targets[order]):
+            decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids)
+            if len(decision):
+                return decision
     return []
 
 
