@@ -258,7 +258,9 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
             return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
         else:
             if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= attackDistance:
-                targets.append(enemyPosition[enemy])
+                for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
+                    if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and not obj.property.invincible_time:
+                        targets.append(enemyPosition[enemy])
     print("seekEnemy(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
@@ -273,7 +275,9 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
             return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
         else:
             if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= ChaseDistance:
-                targets.append(enemyPosition[enemy])
+                for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
+                    if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and not obj.property.invincible_time:
+                        targets.append(enemyPosition[enemy])
     print("seekEnemy(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
