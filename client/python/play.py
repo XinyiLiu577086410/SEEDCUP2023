@@ -156,7 +156,9 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
             bombRange = obj.property.bomb_range    
     # b)检查放完炸弹后的安全性
     changedMap = parsedMap.copy()
-    changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"])))
+    changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"], BombStatus.BOMB_SILENT)))
+    
+    # 去掉会经过危险格的路径
     for i in range(MapEdgeLength):
         for j in range(MapEdgeLength):
            for step in routes[i][j]:
@@ -211,11 +213,12 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
             if all(step not in dangerousGrids for step in routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) < len(targetPath):
                 targetPath = routes[target[0]][target[1]]
     if len(targetPath) == 999:
-        print("safeGoTo() : No route to go!")
+        if not len(targets):
+            print("safeGoTo() : Target exists but no route to go")
         return []
     else:
         print("safeGoto() : Heading to " + str(targetPath[-1]))
-        print("safeGoTo() : Route: " + str(routes[target[0]][target[1]]))
+        print("safeGoTo() : Route: " + str(routes[targetPath[-1][0]][targetPath[-1][1]]))
         return routeToActionReq(targetPath) + [ActionReq(gContext["playerID"], ActionType.SILENT)]
         
 
@@ -273,7 +276,21 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
     print("seekEnemy(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
+def calcPlayerPosition(actionReqList : list[ActionReq], playerPosition : tuple[int, int]):
+    changedPosition = playerPosition
 
+    for action in actionReqList:
+        if action.actionType == ActionType.MOVE_LEFT:
+            changedPosition = (changedPosition[0],changedPosition[1]-1)
+        elif action.actionType == ActionType.MOVE_RIGHT:
+            changedPosition = (changedPosition[0],changedPosition[1]+1)
+        elif action.actionType == ActionType.MOVE_UP:
+            changedPosition = (changedPosition[0]-1,changedPosition[1])
+        elif action.actionType == ActionType.MOVE_DOWN:
+            changedPosition = (changedPosition[0]+1,changedPosition[1])
+    # if changedPosition == playerPosition:
+    #     print("calcPlayerPosition: no changes")
+    return changedPosition
 
 def Play(Map: List[List[Map]]) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
@@ -314,7 +331,7 @@ def Play(Map: List[List[Map]]) -> List[ActionReq]:
 # def DesperateEscape(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
 
 
-def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple) -> List[tuple]:
+def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[tuple]:
     def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
         for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
             if obj.type == ObjType.Block:
@@ -322,13 +339,22 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple) -> List[tuple]:
         return False 
     directions = [[-1,0],[0,1],[1,0],[0,-1]]
     ThisBombZone = []
-    bomb = None
+    bomb_range = -1
     for obj in parsedMap[Bomb[0]][Bomb[1]].objs:
         if obj.type == ObjType.Bomb:
-            bomb = obj
+            bomb_range = obj.property.bomb_range
+
+    # 如果这里没有炸弹，则假设放下一个炸弹
+    if bomb_range == -1:
+        for x in range(MapEdgeLength):
+            for y in range(MapEdgeLength):
+                for obj in parsedMap[x][y].objs:
+                    if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"]:
+                        bomb_range = obj.property.bomb_range
+
     x = Bomb[0]
     y = Bomb[1]
-    for dis in range(obj.property.bomb_range + 1):
+    for dis in range(bomb_range + 1):
         for direction in directions:
             gridToCheck = (x + direction[0] * dis, y + direction[1] * dis)
             if insideGrids(gridToCheck):
