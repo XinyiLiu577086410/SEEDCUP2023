@@ -157,15 +157,6 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     # b)检查放完炸弹后的安全性
     changedMap = parsedMap.copy()
     changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"], BombStatus.BOMB_SILENT)))
-    
-    # 去掉会经过危险格的路径
-    for i in range(MapEdgeLength):
-        for j in range(MapEdgeLength):
-           for step in routes[i][j]:
-               if step in dangerousGrids:
-                   routes[i][j] = [] 
-                   break                  
-
     _, desperate, _ = AnalyseDanger(changedMap, playerPosition, routes)
     if desperate:
         return []
@@ -187,7 +178,7 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
 
 
 def ChooseEscapeRoute(routes : List[List[List[tuple]]], 
-                          playerPosition : tuple, dangerousGrids : List[tuple]) -> List[tuple]:
+                        playerPosition : tuple, dangerousGrids : List[tuple]) -> List[tuple]:
     EscapeRoute = [tuple() for i in range(255)]
     for x in range(MapEdgeLength):
         for y in range(MapEdgeLength):
