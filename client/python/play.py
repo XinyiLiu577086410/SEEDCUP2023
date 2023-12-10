@@ -157,7 +157,17 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     # b)检查放完炸弹后的安全性
     changedMap = parsedMap.copy()
     changedMap[playerPosition[0]][playerPosition[1]].objs.append(Obj(ObjType.Bomb, Bomb(999, bombRange, gContext["playerID"], BombStatus.BOMB_SILENT)))
-    _, desperate, _ = AnalyseDanger(changedMap, playerPosition, routes)
+
+    # 不要冒险
+    safeRoutes = routes.copy()
+    for i in range(MapEdgeLength):
+        for j in range(MapEdgeLength):
+           for step in routes[i][j]:
+               if step in dangerousGrids:
+                   safeRoutes[i][j] = [] 
+                   break
+
+    _, desperate, _ = AnalyseDanger(changedMap, playerPosition, safeRoutes)
     if desperate:
         return []
     else:
