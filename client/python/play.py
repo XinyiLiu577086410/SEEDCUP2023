@@ -94,14 +94,28 @@ def cliGetInitReq():
 
 def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
              playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
-    targets = []
+    # NO_POTION = 0
+    # BOMB_RANGE = 1
+    # BOMB_NUM = 2
+    # HP = 3
+    # INVINCIBLE = 4
+    # SHIELD = 5
+    # SPEED = 6
+    # GLOVES = 7
+    targets = [[] for i in range(8)]
     for i in range(MapEdgeLength):
         for j in range(MapEdgeLength):
             for obj in parsedMap[i][j].objs:
                 if obj.type == ObjType.Item:
-                    targets.append((i,j))
-    print("GoToItem(): calling safeGoTo()")
-    return safeGoTo(targets, routes, playerPosition, dangerousGrids)
+                    targets[obj.property.item_type].append((i,j))
+
+    print("GoToItem(): weighting")
+    orders = [6, 4, 3, 5, 1, 2, 7]
+    for order in orders:
+        decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids)
+        if len(decision):
+            return decision
+    return []
 
 
 def NextToRemovableBlock(parsedMap: List[List[Map]], playerPosition: tuple) -> bool:
