@@ -240,7 +240,7 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
         return []
     else:
         print("safeGoto() : Heading to " + str(targetPath[-1]))
-        print("safeGoTo() : Route: " + str(routes[targetPath[-1][0]][targetPath[-1][1]]))
+        print("safeGoTo() : RouteLen: " + str(len(routes[targetPath[-1][0]][targetPath[-1][1]])))
         return routeToActionReq(targetPath) + [ActionReq(gContext["playerID"], ActionType.SILENT)]
         
 
@@ -393,7 +393,7 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[t
                 newDirections.remove(direction)
         directions = newDirections
     ThisBombZone = list(set(ThisBombZone))
-    print(f"ZoneOfBomb(): Bomb:{Bomb} Zone:{len(ThisBombZone)}")
+    print(f"ZoneOfBomb(): Bomb: {Bomb} Zone: {len(ThisBombZone)}")
     return ThisBombZone
 
 
@@ -485,15 +485,17 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
             if obj.type == ObjType.Bomb:
-                bombData = (obj.property.bomb_id, grid.x, grid.y, CurrentTurn)
                 if not (obj.property.bomb_id in list(data[0] for data in BombInfo)):
-                    newBombInfo.append(bombData)
+                    newBombInfo.append((obj.property.bomb_id, grid.x, grid.y, CurrentTurn))
                 else:
-                    BombInfo = list(filter(lambda data : data[0] != obj.property.bomb_id, BombInfo))
-                    newBombInfo.append(bombData)
+                    oldBombInfo = list(filter(lambda data : data[0] == obj.property.bomb_id, BombInfo))
+                    newBombInfo.append((obj.property.bomb_id, grid.x, grid.y, oldBombInfo[0][3]))
     newBombInfo.sort(key=lambda x:x[0])
     BombInfo = newBombInfo
     print(f"BombList: {BombInfo}")
+    # if no position detected, already dead, exit
+    if myPosition == None:
+        exit(0)
     pfGrid = Grid(matrix=accessableNow)
     for grid in map:
         endPosition = (grid.x, grid.y)
