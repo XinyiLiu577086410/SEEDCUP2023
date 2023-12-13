@@ -14,7 +14,7 @@ from pathfinding.core.grid import Grid
 # from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.finder.a_star import AStarFinder
 
-AttackDistance = 8 # 攻击距离, 应避免太大
+AttackDistance = 10 # 攻击距离, 应避免太大
 ChaseDistance = 999
 MaxSpeed = 2 # 移动速度
 HasGloves = False # 能否推动炸弹
@@ -29,7 +29,7 @@ gContext = {
 }
 MapEdgeLength = 19
 Player = None
-
+Invincible = False
 # copy from main.py (a part of SDK demo)
 class Client(object):
     def __init__(self) -> None:
@@ -106,6 +106,9 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     # SHIELD = 5
     # SPEED = 6
     # GLOVES = 7
+    global HasGloves
+    global Player
+    global aroundInvincibleEnermy
     targets = [[] for i in range(8)]
     for i in range(MapEdgeLength):
         for j in range(MapEdgeLength):
@@ -114,12 +117,23 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                     targets[obj.property.item_type].append((i,j))
 
     print("GoToItem(): Weighting")
-    orders = [6, 4, 3, 5, 1, 2, 7]
+    orders = [6, 4, 3, 7, 5, 1, 2 ]
+    if Player.property.hp == 1:
+        orders = [3, 6, 4, 7, 5, 1, 2 ]
     for order in orders:
         if len(targets[order]):
-            decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids)
-            if len(decision):
-                return decision
+            if order == 7 and HasGloves:
+                continue
+            if order == 3 and Player.property.hp > 1:
+                continue
+            if order == 4:
+                decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids)
+                if len(decision):
+                    return decision
+            else:           
+                decision = safeGoTo(targets[order], routes, playerPosition, dangerousGrids+aroundInvincibleEnermy)
+                if len(decision):
+                    return decision
     return []
 
 
@@ -274,10 +288,13 @@ def insideGrids(grid : tuple) -> bool:
 # 尽量让玩家冲向bot避免被炸弹堵死
 def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
+    global AttackDistance
+    global Invincible
+    global HasGloves
     targets = []
     nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
     for enemy in enemyPosition.keys():
-        if enemyPosition[enemy] in nowZoneOfBomb:
+        if enemyPosition[enemy] in nowZoneOfBomb and not Invincible:
             push = []
             if HasGloves:
                 if enemyPosition[enemy][0] > playerPosition[0]:
@@ -302,7 +319,10 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 
 
     print("seekEnemy(): calling safeGoTo()")
-    return safeGoTo(targets, routes, playerPosition, dangerousGrids)
+    if Invincible:
+        return safeGoTo(targets, routes, playerPosition, [])
+    else:
+        return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
 
 # 追击敌人
@@ -310,6 +330,7 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
     # must use global keyword here
     global AttackDistance
+    global ChaseDistance
     tmp = AttackDistance
     AttackDistance = ChaseDistance
     ret = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
@@ -332,61 +353,92 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
 #     #     print("calcPlayerPosition: no changes")
 #     return changedPosition
 
+
+vis = []
+
+def dfs(accessableNow, start, step):
+    global vis
+    if step == 0:
+        return []
+    res = [start]
+    vis.append(start)
+    directions = [[-1,0],[0,1],[1,0],[0,-1]]
+    for direction in directions:
+        gridToCheck = (start[0] + direction[0], start[1] + direction[1])
+        if insideGrids(gridToCheck) and accessableNow[gridToCheck[0]][gridToCheck[1]] and gridToCheck not in vis:
+            res += dfs(accessableNow, gridToCheck, step-1)
+    return res
+        
+aroundEnermy = []
+aroundInvincibleEnermy = []
 def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]], dangerousGrids: List[tuple]) :
     global enemyPosition
+    global aroundEnermy
+    global aroundInvincibleEnermy
     killerPosition = {}
+    aroundEnermy.clear()
+    aroundInvincibleEnermy.clear()
     for enemy in enemyPosition.values():
-        for obj in parsedMap[enemy[0]][enemy[1]].objs:
-            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
-                if obj.property.invincible_time > 0:
-                    killerPosition[enemy] = obj.property.speed
+        aroundEnermy += dfs(accessableNow, enemy, 6)
+        # for obj in parsedMap[enemy[0]][enemy[1]].objs:
+        #     if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
+        #         if obj.property.invincible_time > 0:
+        #             killerPosition[enemy] = obj.property.speed
     for killer in killerPosition.keys():
-        for i in range(killerPosition[killer]):
-            for j in range(killerPosition[killer]):
-                if insideGrids((killer[0]+i,killer[1]+j)):
-                    dangerousGrids.append((killer[0]+i,killer[1]+j))
-                if insideGrids((killer[0]-i,killer[1]-j)):
-                    dangerousGrids.append((killer[0]-i,killer[1]-j))
-                if insideGrids((killer[0]-i,killer[1]+j)):
-                    dangerousGrids.append((killer[0]-i,killer[1]+j))
-                if insideGrids((killer[0]+i,killer[1]-j)):
-                    dangerousGrids.append((killer[0]+i,killer[1]-j))
+        aroundInvincibleEnermy += dfs(accessableNow, killer, killerPosition[killer]*3)
+        # for i in range(killerPosition[killer]):
+        #     for j in range(killerPosition[killer]):
+        #         if insideGrids((killer[0]+i,killer[1]+j)):
+        #             dangerousGrids.append((killer[0]+i,killer[1]+j))
+        #         if insideGrids((killer[0]-i,killer[1]-j)):
+        #             dangerousGrids.append((killer[0]-i,killer[1]-j))
+        #         if insideGrids((killer[0]-i,killer[1]+j)):
+        #             dangerousGrids.append((killer[0]-i,killer[1]+j))
+        #         if insideGrids((killer[0]+i,killer[1]-j)):
+        #             dangerousGrids.append((killer[0]+i,killer[1]-j))
 
 def Play(resp : ActionResp) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
     actionReqList = [] 
+    global maxSpeed
+    global Invincible
+    global AttackDistance
+    if Invincible:
+        AttackDistance = 999
 
-    
     if isInDangerousZone:
-        tmpReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
+        tmpReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy+aroundEnermy)
+        actionReqList += tmpReqList 
+        tmpReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy)
         actionReqList += tmpReqList 
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
 
-    tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
+    tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy)
     actionReqList += tmpReqList
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
 
-    tmpReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
+    tmpReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
     actionReqList += tmpReqList
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
     
-    tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
+    tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy+aroundEnermy)
     actionReqList += tmpReqList
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
     
-    tmpReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
+    tmpReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
     actionReqList += tmpReqList
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
+    AttackDistance = 10
     return actionReqList
     # 切片是为了防止server报警告导致画面跳动过于剧烈
 
@@ -453,7 +505,7 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
     # take invincible enemys into consideration
     KeepAwayFromInvinciblePlayer(parsedMap, dangerousGrids)
     dangerousGrids = list(set(dangerousGrids))
-    if playerPosition in dangerousGrids:
+    if playerPosition in dangerousGrids + aroundInvincibleEnermy:
         inDangerZone = True
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
@@ -461,7 +513,7 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
         print("AnalyseDanger(): I am so Desperate!")
     return inDangerZone, desperate, dangerousGrids
 
-
+accessableNow = []
 def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict, bool, bool, List[tuple]):
     global MaxSpeed
     global HasGloves
@@ -469,7 +521,10 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     global BombInfo
     global enemyPosition
     global MapEdgeLength
+    global Invincible
+    global accessableNow
     global Player
+    Invincible = False
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
@@ -498,7 +553,8 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     if Player.property.invincible_time > 0:
         for enemy in enemyPosition.values():
             parsedMap[enemy[0]][enemy[1]].objs.append(Obj(ObjType.Item, Item(ItemType.INVINCIBLE)))
-                        
+        if Player.property.invincible_time > 6:
+            Invincible = True
     newBombInfo.sort(key=lambda x:x[0])
     BombInfo = newBombInfo
     print(f"BombList: {BombInfo}")
