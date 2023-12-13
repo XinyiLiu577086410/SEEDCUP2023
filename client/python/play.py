@@ -28,6 +28,7 @@ gContext = {
     "gameBeginFlag": False,
 }
 MapEdgeLength = 19
+Player = None
 
 # copy from main.py (a part of SDK demo)
 class Client(object):
@@ -203,6 +204,7 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
         print("GoToSafeZone(): I am so Desperate!")
+        DesperateEscape() # 无路可走
     else:
         print("GoToSafeZone(): Escaping to " + str(EscapeRoute[-1]))
     return routeToActionReq(EscapeRoute) + [ActionReq(gContext["playerID"], ActionType.SILENT)] # 避免后续的冒险行为
@@ -276,7 +278,21 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
     nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
     for enemy in enemyPosition.keys():
         if enemyPosition[enemy] in nowZoneOfBomb:
-            return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
+            push = []
+            if HasGloves:
+                if enemyPosition[enemy][0] > playerPosition[0]:
+                    if insideGrids((playerPosition[0]-1, playerPosition[1])) and not MeetBunker(parsedMap, (playerPosition[0]-1, playerPosition[1])):
+                        push += [ActionReq(gContext["playerID"], ActionType.MOVE_UP) , ActionReq(gContext["playerID"], ActionType.MOVE_DOWN)]
+                elif enemyPosition[enemy][0] < playerPosition[0]:
+                    if insideGrids((playerPosition[0]+1, playerPosition[1])) and not MeetBunker(parsedMap, (playerPosition[0]+1, playerPosition[1])):
+                        push += [ActionReq(gContext["playerID"], ActionType.MOVE_DOWN) , ActionReq(gContext["playerID"], ActionType.MOVE_UP)]
+                elif enemyPosition[enemy][1] > playerPosition[1]:
+                    if insideGrids((playerPosition[0], playerPosition[1]-1)) and not MeetBunker(parsedMap, (playerPosition[0], playerPosition[1]-1)):
+                        push += [ActionReq(gContext["playerID"], ActionType.MOVE_LEFT) , ActionReq(gContext["playerID"], ActionType.MOVE_RIGHT)]
+                elif enemyPosition[enemy][1] < playerPosition[1]:
+                    if insideGrids((playerPosition[0], playerPosition[1]+1)) and not MeetBunker(parsedMap, (playerPosition[0], playerPosition[1]+1)):
+                        push += [ActionReq(gContext["playerID"], ActionType.MOVE_RIGHT) , ActionReq(gContext["playerID"], ActionType.MOVE_LEFT)]
+            return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids) + push # push the bomb towards enemy
         else:
             if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= AttackDistance:
                 for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
@@ -292,42 +308,38 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
 # 追击敌人
 def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
               playerPosition: tuple, enemyPosition: dict, dangerousGrids: List[tuple]) -> List[ActionReq]:
-    targets = []
-    nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
-    for enemy in enemyPosition.keys():
-        if enemyPosition[enemy] in nowZoneOfBomb:
-            return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
-        else:
-            if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= ChaseDistance:
-                for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
-                    if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and not obj.property.invincible_time:
-                        targets.append(enemyPosition[enemy])
-    print("seekEnemy(): calling safeGoTo()")
-    return safeGoTo(targets, routes, playerPosition, dangerousGrids)
+    # must use global keyword here
+    global AttackDistance
+    tmp = AttackDistance
+    AttackDistance = ChaseDistance
+    ret = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
+    AttackDistance = tmp
+    return ret
 
-def calcPlayerPosition(actionReqList : list[ActionReq], playerPosition : tuple[int, int]):
-    changedPosition = playerPosition
+# def calcPlayerPosition(actionReqList : list[ActionReq], playerPosition : tuple[int, int]):
+#     changedPosition = playerPosition
 
-    for action in actionReqList:
-        if action.actionType == ActionType.MOVE_LEFT:
-            changedPosition = (changedPosition[0],changedPosition[1]-1)
-        elif action.actionType == ActionType.MOVE_RIGHT:
-            changedPosition = (changedPosition[0],changedPosition[1]+1)
-        elif action.actionType == ActionType.MOVE_UP:
-            changedPosition = (changedPosition[0]-1,changedPosition[1])
-        elif action.actionType == ActionType.MOVE_DOWN:
-            changedPosition = (changedPosition[0]+1,changedPosition[1])
-    # if changedPosition == playerPosition:
-    #     print("calcPlayerPosition: no changes")
-    return changedPosition
+#     for action in actionReqList:
+#         if action.actionType == ActionType.MOVE_LEFT:
+#             changedPosition = (changedPosition[0],changedPosition[1]-1)
+#         elif action.actionType == ActionType.MOVE_RIGHT:
+#             changedPosition = (changedPosition[0],changedPosition[1]+1)
+#         elif action.actionType == ActionType.MOVE_UP:
+#             changedPosition = (changedPosition[0]-1,changedPosition[1])
+#         elif action.actionType == ActionType.MOVE_DOWN:
+#             changedPosition = (changedPosition[0]+1,changedPosition[1])
+#     # if changedPosition == playerPosition:
+#     #     print("calcPlayerPosition: no changes")
+#     return changedPosition
 
-def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]], enemyPosition: dict, dangerousGrids: List[tuple]) :
+def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]], dangerousGrids: List[tuple]) :
+    global enemyPosition
     killerPosition = {}
-    for enemyPosition in enemyPosition.values():
-        for obj in parsedMap[enemyPosition[0]][enemyPosition[1]].objs:
-            if obj.type == ObjType.Player:
+    for enemy in enemyPosition.values():
+        for obj in parsedMap[enemy[0]][enemy[1]].objs:
+            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
                 if obj.property.invincible_time > 0:
-                    killerPosition[enemyPosition] = obj.property.speed
+                    killerPosition[enemy] = obj.property.speed
     for killer in killerPosition.keys():
         for i in range(killerPosition[killer]):
             for j in range(killerPosition[killer]):
@@ -350,16 +362,19 @@ def Play(resp : ActionResp) -> List[ActionReq]:
         actionReqList += tmpReqList 
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
+    
+
+    tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
+    actionReqList += tmpReqList
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
+    
 
     tmpReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
     actionReqList += tmpReqList
     if len(actionReqList) > MaxSpeed:
         return actionReqList[0:MaxSpeed]
     
-    tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
-    actionReqList += tmpReqList
-    if len(actionReqList) > MaxSpeed:
-        return actionReqList[0:MaxSpeed]
     
     tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
@@ -374,18 +389,22 @@ def Play(resp : ActionResp) -> List[ActionReq]:
     
     return actionReqList
     # 切片是为了防止server报警告导致画面跳动过于剧烈
-# def Desperate(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]),)
 
 
-# def DesperateEscape(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+def DesperateEscape():
+    return [ActionReq(gContext["playerID"], ActionType.MOVE_UP), ActionReq(gContext["playerID"], ActionType.MOVE_UP), 
+            ActionReq(gContext["playerID"], ActionType.MOVE_LEFT), ActionReq(gContext["playerID"], ActionType.MOVE_RIGHT)]
+
+
+def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
+    for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
+        if obj.type == ObjType.Block:
+            return True
+    return False 
 
 
 def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[tuple]:
-    def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
-        for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
-            if obj.type == ObjType.Block:
-                return True
-        return False 
+    
     directions = [[-1,0],[0,1],[1,0],[0,-1]]
     ThisBombZone = []
     bomb_range = -1
@@ -425,7 +444,6 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
     inDangerZone = False
     desperate = False
     dangerousGrids = [] 
-    global enemyPosition
     for x in range(MapEdgeLength):
         for y in range(MapEdgeLength):
             for obj in parsedMap[x][y].objs:
@@ -433,7 +451,7 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
                     dangerousGrids += FindZoneOfBomb(parsedMap, (x,y))
     
     # take invincible enemys into consideration
-    KeepAwayFromInvinciblePlayer(parsedMap, enemyPosition, dangerousGrids)
+    KeepAwayFromInvinciblePlayer(parsedMap, dangerousGrids)
     dangerousGrids = list(set(dangerousGrids))
     if playerPosition in dangerousGrids:
         inDangerZone = True
@@ -450,6 +468,8 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     global CurrentTurn
     global BombInfo
     global enemyPosition
+    global MapEdgeLength
+    global Player
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
@@ -461,6 +481,7 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
             if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
+                Player = obj
                 myPosition = (grid.x, grid.y)
                 MaxSpeed = obj.property.speed
                 HasGloves = obj.property.has_gloves
@@ -474,6 +495,10 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
                 else:
                     oldBombInfo = list(filter(lambda data : data[0] == obj.property.bomb_id, BombInfo))
                     newBombInfo.append((obj.property.bomb_id, grid.x, grid.y, oldBombInfo[0][3]))
+    if Player.property.invincible_time > 0:
+        for enemy in enemyPosition.values():
+            parsedMap[enemy[0]][enemy[1]].objs.append(Obj(ObjType.Item, Item(ItemType.INVINCIBLE)))
+                        
     newBombInfo.sort(key=lambda x:x[0])
     BombInfo = newBombInfo
     print(f"BombList: {BombInfo}")

@@ -4,7 +4,7 @@
   "game_print_map": false,
   "game_print_map_ascii": false,
   "map_size": 19,
-  "player_num": 4,
+  "player_num": 2,
   "player_hp": 1,
   "player_max_hp": 3,
   "player_speed": 2,
@@ -29,7 +29,7 @@
   "server_max_connection_num": 10,
   "epoll_max_events_num": 100,
   "epoll_timeout": 10,
-  "log_print_stdout": true,
+  "log_print_stdout": false,
   "host": "0.0.0.0",
   "port": 9999
 }
