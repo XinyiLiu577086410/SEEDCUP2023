@@ -14,10 +14,12 @@ from pathfinding.core.grid import Grid
 # from pathfinding.finder.dijkstra import DijkstraFinder
 from pathfinding.finder.a_star import AStarFinder
 
-attackDistance = 3 # 攻击距离, 应避免太大
+AttackDistance = 3 # 攻击距离, 应避免太大
 ChaseDistance = 7
-maxSpeed = 2# 移动速度
-hasGloves = False# 能否推动炸弹
+MaxSpeed = 2 # 移动速度
+HasGloves = False # 能否推动炸弹
+BombInfo = []
+CurrentTurn = 0
 gContext = {
     "playerID": -1,
     "gameOverFlag": False,
@@ -109,7 +111,7 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                 if obj.type == ObjType.Item:
                     targets[obj.property.item_type].append((i,j))
 
-    print("GoToItem(): weighting")
+    print("GoToItem(): Weighting")
     orders = [6, 4, 3, 5, 1, 2, 7]
     for order in orders:
         if len(targets[order]):
@@ -139,19 +141,22 @@ def GoToRemovableBlockAndPlaceBomb(parsedMap: List[List[Map]], routes: List[List
                           playerPosition: tuple, dangerousGrids: List[tuple]) -> List[ActionReq]:
     targets = []
     directions = [[-1,0],[0,1],[1,0],[0,-1]]
+    if NextToRemovableBlock(parsedMap, playerPosition):
+        return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
+    # lxy：我觉得这段代码是我晚上十二点之后写的，像拉稀了一样
     for i in range(MapEdgeLength):
-        for j in range(MapEdgeLength):
-            # 附近有可炸的砖块
-            if NextToRemovableBlock(parsedMap, playerPosition):
-                return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
-            if playerPosition == (i,j):
-                continue
-            for dir in directions:
-                GridToCheck = (i+dir[0], j+dir[1])
-                if insideGrids(GridToCheck):
-                    for obj in parsedMap[i+dir[0]][j+dir[1]].objs:
-                        if obj.type == ObjType.Block and obj.property.removable == True:
-                            targets.append((i,j))
+        for j in range(MapEdgeLength):    
+            for obj in parsedMap[i][j].objs:
+                if obj.type == ObjType.Block and obj.property.removable == True:
+                    if insideGrids((i+1,j)):
+                        targets.append((i+1,j))
+                    if insideGrids((i-1,j)):
+                        targets.append((i-1,j))
+                    if insideGrids((i,j+1)):
+                        targets.append((i,j+1))
+                    if insideGrids((i,j-1)):
+                        targets.append((i,j-1))
+    targets = list(set(targets))
     print("GoToRemoveableBlock(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
@@ -182,12 +187,12 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                    safeRoutes[i][j] = [] 
                    break
 
-    _, desperate, _ = AnalyseDanger(changedMap, playerPosition, safeRoutes)
+    _, desperate, changedDangerousGrids = AnalyseDanger(changedMap, playerPosition, safeRoutes)
     if desperate:
         return []
     else:
         print("PlaceBomb(): Bomb placed at " + str(playerPosition))
-        return [ActionReq(gContext["playerID"], ActionType.PLACED)]
+        return [ActionReq(gContext["playerID"], ActionType.PLACED)] + routeToActionReq(ChooseEscapeRoute(safeRoutes,playerPosition,changedDangerousGrids))
     
 
 # 仅当位于危险区域时调用
@@ -229,8 +234,8 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
             if all(step not in dangerousGrids for step in routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) and len(routes[target[0]][target[1]]) < len(targetPath):
                 targetPath = routes[target[0]][target[1]]
     if len(targetPath) == 999:
-        if not len(targets):
-            print("safeGoTo() : Target exists but no route to go")
+        if len(targets):
+            print(f"safeGoTo() : Target exists but no route to go: {len(targets)}")
         return []
     else:
         print("safeGoto() : Heading to " + str(targetPath[-1]))
@@ -272,7 +277,7 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
         if enemyPosition[enemy] in nowZoneOfBomb:
             return PlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
         else:
-            if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= attackDistance:
+            if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= AttackDistance:
                 for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
                     if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and not obj.property.invincible_time:
                         targets.append(enemyPosition[enemy])
@@ -312,36 +317,36 @@ def calcPlayerPosition(actionReqList : list[ActionReq], playerPosition : tuple[i
     #     print("calcPlayerPosition: no changes")
     return changedPosition
 
-def Play(Map: List[List[Map]]) -> List[ActionReq]:
+def Play(resp : ActionResp) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
     actionReqList = [] 
 
     if isInDangerousZone:
         tmpReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids)
         actionReqList += tmpReqList 
-    if len(actionReqList) > maxSpeed:
-        return actionReqList[0:maxSpeed]
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
     
     tmpReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
     actionReqList += tmpReqList
-    if len(actionReqList) > maxSpeed:
-        return actionReqList[0:maxSpeed]
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
     
     tmpReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
-    if len(actionReqList) > maxSpeed:
-        return actionReqList[0:maxSpeed]
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
     
     tmpReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids)
     actionReqList += tmpReqList
-    if len(actionReqList) > maxSpeed:
-        return actionReqList[0:maxSpeed]
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
     
     # 地图上没有可炸的砖块时追击敌人
     tmpReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids)
     actionReqList += tmpReqList
-    if len(actionReqList) > maxSpeed:
-        return actionReqList[0:maxSpeed]
+    if len(actionReqList) > MaxSpeed:
+        return actionReqList[0:MaxSpeed]
     
     return actionReqList
     # 切片是为了防止server报警告导致画面跳动过于剧烈
@@ -375,13 +380,19 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[t
     x = Bomb[0]
     y = Bomb[1]
     for dis in range(bomb_range + 1):
+        newDirections = directions.copy()
         for direction in directions:
             gridToCheck = (x + direction[0] * dis, y + direction[1] * dis)
             if insideGrids(gridToCheck):
                 if(MeetBunker(parsedMap, gridToCheck)):
-                    directions.remove(direction)
+                    newDirections.remove(direction)
                 else:
                     ThisBombZone.append(gridToCheck)
+            else: 
+                newDirections.remove(direction)
+        directions = newDirections
+    ThisBombZone = list(set(ThisBombZone))
+    print(f"ZoneOfBomb(): Bomb:{Bomb} Zone:{ThisBombZone}")
     return ThisBombZone
 
 
@@ -406,24 +417,38 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
 
 
 def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple, dict, bool, bool, List[tuple]):
-    global maxSpeed
-    global hasGloves
+    global MaxSpeed
+    global HasGloves
+    global CurrentTurn
+    global BombInfo
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
+    CurrentTurn = resp.data.player_id
     myPosition = None
     enemyPosition = {}
+    newBombInfo = []
     for grid in map:
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
             if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
                 myPosition = (grid.x, grid.y)
-                maxSpeed = obj.property.speed
-                hasGloves = obj.property.has_gloves
+                MaxSpeed = obj.property.speed
+                HasGloves = obj.property.has_gloves
             if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
                 enemyPosition[obj.property.player_id] = (grid.x, grid.y)
             if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
                 accessableNow[grid.x][grid.y] = 0 
+            if obj.type == ObjType.Bomb:
+                bombData = (obj.property.bomb_id, grid.x, grid.y, CurrentTurn)
+                if not (obj.property.bomb_id in list(data[0] for data in BombInfo)):
+                    newBombInfo.append(bombData)
+                else:
+                    BombInfo = list(filter(lambda data : data[0] != obj.property.bomb_id, BombInfo))
+                    newBombInfo.append(bombData)
+    newBombInfo.sort(key=lambda x:x[0])
+    BombInfo = newBombInfo
+    print(f"BombList: {BombInfo}")
     pfGrid = Grid(matrix=accessableNow)
     for grid in map:
         endPosition = (grid.x, grid.y)
@@ -431,7 +456,6 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
         newPath, _ = finder.find_path(pfGrid.node(myPosition[1], myPosition[0]),
                                       pfGrid.node(endPosition[1], endPosition[0]), pfGrid)
-
                                       #reversed order here
         myNewPath = [(newPath[i].y, newPath[i].x) for i in range(len(newPath))]
         paths[grid.x][grid.y] = myNewPath
@@ -458,7 +482,7 @@ if __name__ == "__main__":
     MapEdgeLength = int(math.sqrt(len(resp.data.map)))
     print(f"detected map edge length {MapEdgeLength}")
     while(not gContext["gameOverFlag"]):
-        requests = Play(Map)
+        requests = Play(resp)
         client.send(PacketReq(PacketType.ActionReq, requests))
         resp = client.recv()    
         if resp.type == PacketType.GameOver:
