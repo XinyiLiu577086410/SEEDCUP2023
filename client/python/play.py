@@ -20,6 +20,7 @@ MaxSpeed = 2 # 移动速度
 HasGloves = False # 能否推动炸弹
 BombInfo = []
 CurrentTurn = 0
+enemyPosition = {}
 gContext = {
     "playerID": -1,
     "gameOverFlag": False,
@@ -192,7 +193,7 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
         return []
     else:
         print("PlaceBomb(): Bomb placed at " + str(playerPosition))
-        return [ActionReq(gContext["playerID"], ActionType.PLACED)] + routeToActionReq(ChooseEscapeRoute(safeRoutes,playerPosition,changedDangerousGrids))
+        return [ActionReq(gContext["playerID"], ActionType.PLACED)] + EscapeToSafeZone(changedMap, safeRoutes, playerPosition, changedDangerousGrids)
     
 
 # 仅当位于危险区域时调用
@@ -392,8 +393,46 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[t
                 newDirections.remove(direction)
         directions = newDirections
     ThisBombZone = list(set(ThisBombZone))
-    print(f"ZoneOfBomb(): Bomb:{Bomb} Zone:{ThisBombZone}")
+    print(f"ZoneOfBomb(): Bomb:{Bomb} Zone:{len(ThisBombZone)}")
     return ThisBombZone
+
+
+def FindZoneOfInvincibleEnemys(parsedMap: List[List[Map]]):
+    def ZoneOfEnemy(parsedMap : List[List[Map]], Position : tuple, Id : int):
+        def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
+            for obj in parsedMap[gridToCheck[0]][gridToCheck[1]].objs:
+                if obj.type == ObjType.Block or obj.type == ObjType.Bomb:
+                    return True
+            return False
+        
+        directions = [[-1,0],[0,1],[1,0],[0,-1]]
+        ThisEnemyZone = []
+        this_range = -1
+
+        for obj in parsedMap[Position[0]][Position[1]].objs:
+            if obj.type == ObjType.Player and obj.property.player_id == Id and obj.property.invincible_time:
+                this_range = obj.property.speed
+                break
+            
+        for dis in range(this_range + 1):
+            newDirections = directions.copy()
+            for direction in directions:
+                gridToCheck = (Position[0] + direction[0] * dis, Position[1] + direction[1] * dis)
+                if insideGrids(gridToCheck):
+                    if(MeetBunker(parsedMap, gridToCheck)):
+                        newDirections.remove(direction)
+                    else:
+                        ThisEnemyZone.append(gridToCheck)
+                else: 
+                    newDirections.remove(direction)
+            directions = newDirections
+        ThisEnemyZone = list(set(ThisEnemyZone))
+        return ThisEnemyZone
+
+    dangerousGrids = []
+    for enemy in enemyPosition.keys():
+        dangerousGrids += ZoneOfEnemy(parsedMap, enemyPosition[enemy], enemy)
+    return dangerousGrids
 
 
 # 格局上所有危险位置，以及我是否在危险位置上
@@ -407,6 +446,11 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
             for obj in parsedMap[x][y].objs:
                 if obj.type == ObjType.Bomb:
                     dangerousGrids += FindZoneOfBomb(parsedMap, (x,y))
+    
+    # take invincible enemys into consideration
+    dangerousGrids += FindZoneOfInvincibleEnemys(parsedMap)
+    dangerousGrids = list(set(dangerousGrids))
+
     if playerPosition in dangerousGrids:
         inDangerZone = True
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
@@ -421,10 +465,11 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     global HasGloves
     global CurrentTurn
     global BombInfo
+    global enemyPosition
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     paths = [[[] for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
     accessableNow = [[1 for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
-    CurrentTurn = resp.data.player_id
+    CurrentTurn = resp.data.round
     myPosition = None
     enemyPosition = {}
     newBombInfo = []
