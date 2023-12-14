@@ -87,7 +87,7 @@ class Client(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
         if traceback:
-            print(traceback)
+            # print(traceback)
             return False
         return True
 
@@ -116,7 +116,7 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
                 if obj.type == ObjType.Item:
                     targets[obj.property.item_type].append((i,j))
 
-    print("GoToItem(): Weighting")
+    # print("GoToItem(): Weighting")
     orders = [6, 4, 3, 7, 5, 1, 2 ]
     if Player.property.hp == 1:
         orders = [3, 6, 4, 7, 5, 1, 2 ]
@@ -173,7 +173,7 @@ def GoToRemovableBlockAndPlaceBomb(parsedMap: List[List[Map]], routes: List[List
                     if insideGrids((i,j-1)):
                         targets.append((i,j-1))
     targets = list(set(targets))
-    print("GoToRemoveableBlock(): calling safeGoTo()")
+    # print("GoToRemoveableBlock(): calling safeGoTo()")
     return safeGoTo(targets, routes, playerPosition, dangerousGrids)
 
 
@@ -207,7 +207,7 @@ def PlaceBomb(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     if desperate:
         return []
     else:
-        print("PlaceBomb(): Bomb placed at " + str(playerPosition))
+        # print("PlaceBomb(): Bomb placed at " + str(playerPosition))
         return [ActionReq(gContext["playerID"], ActionType.PLACED)] + EscapeToSafeZone(changedMap, safeRoutes, playerPosition, changedDangerousGrids)
     
 
@@ -217,10 +217,10 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
                     playerPosition: tuple, dangerousGrids: List[List[tuple]]) -> List[ActionReq]: 
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
-        print("GoToSafeZone(): I am so Desperate!")
+        # print("GoToSafeZone(): I am so Desperate!")
         DesperateEscape() # 无路可走
     else:
-        print("GoToSafeZone(): Escaping to " + str(EscapeRoute[-1]))
+        pass        # print("GoToSafeZone(): Escaping to " + str(EscapeRoute[-1]))
     return routeToActionReq(EscapeRoute) + [ActionReq(gContext["playerID"], ActionType.SILENT)] # 避免后续的冒险行为
 
 
@@ -252,11 +252,12 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
                 targetPath = routes[target[0]][target[1]]
     if len(targetPath) == 999:
         if len(targets):
-            print(f"safeGoTo() : Target exists but no route to go: {len(targets)}")
+            pass
+            # print(f"safeGoTo() : Target exists but no route to go: {len(targets)}")
         return []
     else:
-        print("safeGoto() : Heading to " + str(targetPath[-1]))
-        print("safeGoTo() : RouteLen: " + str(len(routes[targetPath[-1][0]][targetPath[-1][1]])))
+        # print("safeGoto() : Heading to " + str(targetPath[-1]))
+        # print("safeGoTo() : RouteLen: " + str(len(routes[targetPath[-1][0]][targetPath[-1][1]])))
         return routeToActionReq(targetPath) + [ActionReq(gContext["playerID"], ActionType.SILENT)]
         
 
@@ -318,7 +319,7 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
                             targets.append(enemyPosition[enemy])
 
 
-    print("seekEnemy(): calling safeGoTo()")
+    # print("seekEnemy(): calling safeGoTo()")
     if Invincible:
         return safeGoTo(targets, routes, playerPosition, [])
     else:
@@ -487,7 +488,7 @@ def FindZoneOfBomb(parsedMap: List[List[Map]], Bomb : tuple[int, int]) -> List[t
                 newDirections.remove(direction)
         directions = newDirections
     ThisBombZone = list(set(ThisBombZone))
-    print(f"ZoneOfBomb(): Bomb: {Bomb} Zone: {len(ThisBombZone)}")
+    # print(f"ZoneOfBomb(): Bomb: {Bomb} Zone: {len(ThisBombZone)}")
     return ThisBombZone
 
 
@@ -510,7 +511,7 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, dangerousGrids)
     if len(EscapeRoute) == 0:
         desperate = True
-        print("AnalyseDanger(): I am so Desperate!")
+        # print("AnalyseDanger(): I am so Desperate!")
     return inDangerZone, desperate, dangerousGrids
 
 accessableNow = []
@@ -557,7 +558,7 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
             Invincible = True
     newBombInfo.sort(key=lambda x:x[0])
     BombInfo = newBombInfo
-    print(f"BombList: {BombInfo}")
+    # print(f"BombList: {BombInfo}")
     # if no position detected, already dead, exit
     if myPosition == None:
         exit(0)
@@ -595,7 +596,7 @@ if __name__ == "__main__":
         logger.error("init failed")
         exit(-1)
     MapEdgeLength = int(math.sqrt(len(resp.data.map)))
-    print(f"detected map edge length {MapEdgeLength}")
+    # print(f"detected map edge length {MapEdgeLength}")
     while(not gContext["gameOverFlag"]):
         requests = Play(resp)
         client.send(PacketReq(PacketType.ActionReq, requests))

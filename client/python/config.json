@@ -4,7 +4,7 @@
   "game_print_map": false,
   "game_print_map_ascii": false,
   "map_size": 19,
-  "player_num": 2,
+  "player_num": 4,
   "player_hp": 1,
   "player_max_hp": 3,
   "player_speed": 2,
