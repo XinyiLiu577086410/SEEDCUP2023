@@ -1,0 +1,24 @@
+[2023-12-15 17:55:35.052] [seednet] [debug] setup logger success
+[2023-12-15 17:55:35.052] [seednet] [error] bind socket 0.0.0.0:9999 failed.
+[2023-12-15 17:55:29.895] [seedgame] [debug] setup logger success
+[2023-12-15 17:55:29.895] [seedgame] [debug] init map success 19*19
+[2023-12-15 17:55:40.223] [seedgame] [debug] player 0 add success in 18,0
+[2023-12-15 17:55:43.871] [seedgame] [debug] player 1 add success in 18,18
+[2023-12-15 17:55:46.096] [seedgame] [debug] player 2 add success in 0,0
+[2023-12-15 17:55:29.895] [seednet] [debug] setup logger success
+[2023-12-15 17:55:29.895] [seednet] [info] create and bind socket 0.0.0.0:9999 success!
+[2023-12-15 17:55:29.895] [seednet] [info] EpollTcpServer Init Success.
+[2023-12-15 17:55:29.895] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-12-15 17:55:29.895] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-12-15 17:55:40.223] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-12-15 17:55:40.223] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-12-15 17:55:40.223] [seednet] [info] accepting all connections.
+[2023-12-15 17:55:40.223] [seednet] [info] fd 8 recv 44 bytes, content: {"data":{"player_name":"hard_bot"},"type":1}
+[2023-12-15 17:55:43.871] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-12-15 17:55:43.871] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-12-15 17:55:43.871] [seednet] [info] accepting all connections.
+[2023-12-15 17:55:43.871] [seednet] [info] fd 9 recv 44 bytes, content: {"data":{"player_name":"hard_bot"},"type":1}
+[2023-12-15 17:55:46.096] [seednet] [info] accepting connection from 127.0.0.1.
+[2023-12-15 17:55:46.096] [seednet] [info] Epoll op: add, Epoll events: read.
+[2023-12-15 17:55:46.096] [seednet] [info] accepting all connections.
+[2023-12-15 17:55:46.096] [seednet] [info] fd 10 recv 44 bytes, content: {"data":{"player_name":"hard_bot"},"type":1}

@@ -582,7 +582,7 @@ def Play(resp : ActionResp) -> List[ActionReq]:
         AttackDistance = Player.property.bomb_range + Player.property.speed + BaseAttackDistance
 
 
-    if Invincible or (Shielded and Player.property.shield_time > 5):
+    if Invincible or (Shielded and Player.property.shield_time > 5) or AttackedLastTurn:
         AttackDistance = 999
         actionReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
         AttackDistance = 8
