@@ -1,3 +1,5 @@
+from os import access
+from random import randint
 from typing import List
 from req import *
 from base import *
@@ -29,9 +31,30 @@ gContext = {
     "gameBeginFlag": False,
 }
 MapEdgeLength = 19
-Player = None
+Myself = None
 Invincible = False
 Shielded = False
+AttackedLastTurn = False
+MyBombLastTurn = None
+
+
+vis = []
+
+def dfs(accessableNow, start, step):
+    global vis
+    if step == 0:
+        return []
+    res = [start]
+    vis.append(start)
+    directions = [[-1,0],[0,1],[1,0],[0,-1]]
+    for direction in directions:
+        gridToCheck = (start[0] + direction[0], start[1] + direction[1])
+        if insideGrids(gridToCheck) and accessableNow[gridToCheck[0]][gridToCheck[1]] and gridToCheck not in vis:
+            res += dfs(accessableNow, gridToCheck, step-1)
+    return res
+        
+
+
 # copy from main.py (a part of SDK demo)
 class Client(object):
     def __init__(self) -> None:
@@ -97,6 +120,18 @@ class Client(object):
 def cliGetInitReq():
     return InitReq(config.get("player_name"))
 
+def GoToSpecifiedItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
+                playerPosition: tuple, bannedGrids: List[tuple], item_type: int) -> List[ActionReq]:
+        print("GoToSpecifiedItem()")
+        targets = []
+        for i in range(MapEdgeLength):
+            for j in range(MapEdgeLength):
+                for obj in parsedMap[i][j].objs:
+                    if obj.type == ObjType.Item and obj.property.item_type == item_type:
+                        targets.append((i,j))
+        print("GoToSpecifiedItem(): Weighting")
+        return safeGoTo(targets, routes, playerPosition, bannedGrids)
+
 
 def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
              playerPosition: tuple, bannedGrids: List[tuple]) -> List[ActionReq]:
@@ -110,7 +145,7 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
     # SPEED = 6
     # GLOVES = 7
     global HasGloves
-    global Player
+    global Myself
     global aroundInvincibleEnermy
     targets = [[] for i in range(8)]
     for i in range(MapEdgeLength):
@@ -121,16 +156,14 @@ def GoToItem(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
 
     print("GoToItem(): Weighting")
     orders = [6, 4, 3, 7, 5, 1, 2 ]
-    if Player.property.hp == 1:
+    if Myself.property.hp == 1:
         orders = [3, 6, 4, 7, 5, 1, 2 ]
-    if Player.property.bomb_max_num > 6:
-        orders = [6, 4, 7, 5, 1, 3, 2]
     for order in orders:
         if len(targets[order]):
-            if order == 7 and HasGloves:
-                continue
-            if order == 3 and Player.property.hp > 1:
-                continue
+            # if order == 7 and HasGloves:
+            #     continue
+            # if order == 3 and Player.property.hp > 1:
+            #     continue
             if order == 4:
                 decision = safeGoTo(targets[order], routes, playerPosition, bannedGrids)
                 if len(decision):
@@ -224,7 +257,10 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
     EscapeRoute = ChooseEscapeRoute(routes, playerPosition, bannedGrids)
     if len(EscapeRoute) == 0:
         print("EscapeToSafeZone(): No route to escape")
-        return DesperateEscape() # 无路可走
+        if len(dfs(accessableNow, playerPosition, 6)) <= 4:
+            return DesperateEscape()
+        else:
+            return [] # 无路可走
     else:
         pass        
         print("EscapeToSafeZone(): Going to " + str(EscapeRoute[-1]))
@@ -234,14 +270,14 @@ def EscapeToSafeZone(parsedMap: List[List[Map]], routes: List[List[List[tuple]]]
 def ChooseEscapeRoute(routes : List[List[List[tuple]]], 
                         playerPosition : tuple, bannedGrids : List[tuple]) -> List[tuple]:
     print("ChooseEscapeRoute()")
-    EscapeRoute = [tuple() for i in range(255)]
+    EscapeRoute = [tuple() for i in range(999)]
     for x in range(MapEdgeLength):
         for y in range(MapEdgeLength):
             # 注意 route 为空的情况表示不可达
-            if not ((x,y) in bannedGrids) and len(routes[x][y]) and len(routes[x][y]) < len(EscapeRoute):
+            if  ((x,y) not in bannedGrids) and len(routes[x][y]) and len(routes[x][y]) < len(EscapeRoute):
                 #  ^~~~~~~安全区域                ^~~~~可达             ^~~~~~~~~~~~~~~~~~~~~~~路径更短
                 EscapeRoute = routes[x][y]
-    if len(EscapeRoute) == 255:
+    if len(EscapeRoute) == 999:
         return []
     else:
         return EscapeRoute
@@ -252,6 +288,8 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
     print("safeGoTo()")
     targetPath = [tuple() for i in range(999)]
     for target in targets:
+        if target == playerPosition:
+            continue
         if insideGrids(target) == False:
             logger.error("safeGoTo(): Target out of range, Check your arguements!")
         else:
@@ -267,7 +305,7 @@ def safeGoTo(targets : List[tuple], routes : List[List[List[tuple]]], playerPosi
     else:
         print("safeGoto() : Heading to " + str(targetPath[-1]))
         print("safeGoTo() : RouteLen: " + str(len(routes[targetPath[-1][0]][targetPath[-1][1]])))
-        return routeToActionReq(targetPath) + [ActionReq(gContext["playerID"], ActionType.SILENT)]
+        return routeToActionReq(targetPath)
         
 
 # 不要调用
@@ -315,12 +353,13 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
     global Invincible
     global Shielded
     global HasGloves
+    global MyBombLastTurn
+    global AttackedLastTurn
     targets = []
     nowZoneOfBomb = FindZoneOfBomb(parsedMap, playerPosition)
     for enemy in enemyPosition.keys():
         if enemyPosition[enemy] in nowZoneOfBomb and not Invincible:
             push = []
-            quit = []
             if HasGloves:
                 if enemyPosition[enemy][0] > playerPosition[0]:
                     if insideGrids((playerPosition[0]-1, playerPosition[1])) and not MeetBunker(parsedMap, (playerPosition[0]-1, playerPosition[1])):
@@ -334,11 +373,15 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
                 elif enemyPosition[enemy][1] < playerPosition[1]:
                     if insideGrids((playerPosition[0], playerPosition[1]+1)) and not MeetBunker(parsedMap, (playerPosition[0], playerPosition[1]+1)):
                         push += [ActionReq(gContext["playerID"], ActionType.MOVE_RIGHT) , ActionReq(gContext["playerID"], ActionType.MOVE_LEFT)]
-            return PlaceBomb(parsedMap, routes, playerPosition, bannedGrids) + push + quit # push the bomb towards enemy
+            actionPlaceBomb = PlaceBomb(parsedMap, routes, playerPosition, bannedGrids)
+            if len(actionPlaceBomb):
+                MyBombLastTurn = playerPosition
+                # AttackedLastTurn = True
+                return actionPlaceBomb + push
         else:
             if Invincible:
                 if len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]):
-                    for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
+                    for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs: # find enemy
                         if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and obj.property.shield_time < 3:
                             if not obj.property.invincible_time:
                                 targets.append(enemyPosition[enemy])
@@ -347,24 +390,31 @@ def SeekEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]
                     and len(routes[enemyPosition[enemy][0]][enemyPosition[enemy][1]]) <= AttackDistance:
                     for obj in parsedMap[enemyPosition[enemy][0]][enemyPosition[enemy][1]].objs:
                         if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"] and obj.property.shield_time < 3:
-                            if not obj.property.invincible_time:
-                                targets.append(enemyPosition[enemy])
-
-
+                            if not obj.property.invincible_time:   
+                                thisEnemy = enemyPosition[enemy]
+                                global accessableNow
+                                vis.clear()
+                                possibleGrids = dfs(accessableNow, thisEnemy, 2)
+                                for grid in possibleGrids:
+                                    if grid != playerPosition and grid != thisEnemy:
+                                        targets.append(grid)                                
     print("seekEnemy(): calling safeGoTo()")
     if Invincible:
         steps = safeGoTo(targets, routes, playerPosition, [])
         print("seekEnemy(): now invincible")
         if len(steps):
-            print (steps + [steps[-1],steps[-1],steps[-1],])
-            return steps + [steps[-1],steps[-1],steps[-1],]
+            print (steps + [steps[-1],steps[-1],steps[-1],]) 
+            return steps + [steps[-1],steps[-1],steps[-1],] # I need to chase the enemy
         else:
             return steps
     if Shielded:
-        return safeGoTo(targets, routes, playerPosition, [])
+        return safeGoTo(targets, routes, playerPosition, [aroundInvincibleEnermy])
     else:
-        return safeGoTo(targets, routes, playerPosition, bannedGrids)
-
+        steps = safeGoTo(targets, routes, playerPosition, bannedGrids)
+        if len(steps):
+            return safeGoTo(targets, routes, playerPosition, bannedGrids) + [ActionReq(gContext["playerID"], ActionType.PLACED)]
+        else:
+            return steps
 
 # 追击敌人
 def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple]]],
@@ -396,21 +446,7 @@ def ChaseEnemyAndAttack(parsedMap: List[List[Map]], routes: List[List[List[tuple
 #     return changedPosition
 
 
-vis = []
 
-def dfs(accessableNow, start, step):
-    global vis
-    if step == 0:
-        return []
-    res = [start]
-    vis.append(start)
-    directions = [[-1,0],[0,1],[1,0],[0,-1]]
-    for direction in directions:
-        gridToCheck = (start[0] + direction[0], start[1] + direction[1])
-        if insideGrids(gridToCheck) and accessableNow[gridToCheck[0]][gridToCheck[1]] and gridToCheck not in vis:
-            res += dfs(accessableNow, gridToCheck, step-1)
-    return res
-        
 aroundEnermy = []
 aroundInvincibleEnermy = []
 def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]]) :
@@ -418,17 +454,19 @@ def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]]) :
     global enemyPosition
     global aroundEnermy
     global aroundInvincibleEnermy
-    killerPosition = {}
+    killerSpeed = {}
     aroundEnermy.clear()
     aroundInvincibleEnermy.clear()
     for enemy in enemyPosition.values():
+        killerSpeed[enemy] = 0
+    for enemy in enemyPosition.values():
         aroundEnermy += dfs(accessableNow, enemy, 6)
-        # for obj in parsedMap[enemy[0]][enemy[1]].objs:
-        #     if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
-        #         if obj.property.invincible_time > 0:
-        #             killerPosition[enemy] = obj.property.speed
-    for killer in killerPosition.keys():
-        aroundInvincibleEnermy += dfs(accessableNow, killer, killerPosition[killer]*3)
+        for obj in parsedMap[enemy[0]][enemy[1]].objs:
+            if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
+                if obj.property.invincible_time > 0:
+                    killerSpeed[enemy] = max(obj.property.speed, killerSpeed[enemy])
+    for killer in killerSpeed.keys():
+        aroundInvincibleEnermy += dfs(accessableNow, killer, killerSpeed[killer]*3)
         # for i in range(killerPosition[killer]):
         #     for j in range(killerPosition[killer]):
         #         if insideGrids((killer[0]+i,killer[1]+j)):
@@ -562,7 +600,15 @@ def KeepAwayFromInvinciblePlayer(parsedMap: List[List[Map]]) :
 #     PlaceBombCallFlag = False
 #     return inDangerZone, desperate, dangerousGrids_
 
-AttackedLastTurn = False
+
+def AppearedInvinciblePotion(parsedMap: List[List[Map]]) -> bool:
+    for x in range(MapEdgeLength):
+        for y in range(MapEdgeLength):
+            for obj in parsedMap[x][y].objs:
+                if obj.type == ObjType.Item and obj.property.item_type == 4:
+                    return True
+    return False
+
 
 def Play(resp : ActionResp) -> List[ActionReq]:
     parsedMap, routes, playerPosition, enemyPosition, isInDangerousZone, desperate, dangerousGrids = ParseMap(resp.data.map)
@@ -571,19 +617,24 @@ def Play(resp : ActionResp) -> List[ActionReq]:
     global Invincible
     global AttackDistance
     global Shielded
-    global Player
+    global Myself
     global BaseAttackDistance
     global AttackedLastTurn
     global AttackDistance
 
     if AttackedLastTurn:
-        AttackDistance += 4*(Player.property.bomb_range + Player.property.speed) + BaseAttackDistance
+        AttackDistance += 4*(Myself.property.bomb_range + Myself.property.speed) + BaseAttackDistance
     else:
-        AttackDistance = Player.property.bomb_range + Player.property.speed + BaseAttackDistance
+        AttackDistance = Myself.property.bomb_range + Myself.property.speed + BaseAttackDistance
 
 
-    if Invincible or (Shielded and Player.property.shield_time > 5) or AttackedLastTurn:
-        AttackDistance = 999
+    if Invincible or (Shielded and Myself.property.shield_time > 5) or AttackedLastTurn:
+        if AppearedInvinciblePotion(parsedMap):
+            actionReqList = GoToSpecifiedItem(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy, 4)
+            if actionReqList != []:
+                return actionReqList
+            else:
+                pass
         actionReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
         AttackDistance = 8
         if actionReqList != []:
@@ -594,7 +645,7 @@ def Play(resp : ActionResp) -> List[ActionReq]:
             pass
 
 
-    if isInDangerousZone:
+    if isInDangerousZone and not Myself.property.invincible_time>0:
         actionReqList = EscapeToSafeZone(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy+aroundEnermy)
         if actionReqList != []:
             return actionReqList
@@ -605,40 +656,40 @@ def Play(resp : ActionResp) -> List[ActionReq]:
             else:
                 pass
     
-    else: 
-        actionReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy)
-        if actionReqList != []:
-            return actionReqList
-        else :
-            pass
 
-        actionReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
-        AttackDistance = 8
-        if actionReqList != []:
-            AttackedLastTurn = True
-            return actionReqList
-        else:
-            AttackedLastTurn = False
-            pass
-            
-        actionReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy+aroundEnermy)
+    actionReqList = GoToItem(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy)
+    if actionReqList != []:
+        return actionReqList
+    else :
+        pass
+
+    actionReqList = SeekEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
+    AttackDistance = 8
+    if actionReqList != []:
+        AttackedLastTurn = True
+        return actionReqList
+    else:
+        AttackedLastTurn = False
+        pass
         
-        if actionReqList != []:
-            return actionReqList
-        
-        
-        actionReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
-        if actionReqList != []:
-            AttackedLastTurn = True
-            return actionReqList
-        else:
-            AttackedLastTurn = False
-            return []
+    actionReqList = GoToRemovableBlockAndPlaceBomb(parsedMap, routes, playerPosition, dangerousGrids+aroundInvincibleEnermy+aroundEnermy)
+    
+    if actionReqList != []:
+        return actionReqList
+    
+    
+    actionReqList = ChaseEnemyAndAttack(parsedMap, routes, playerPosition, enemyPosition, dangerousGrids+aroundInvincibleEnermy)
+    if actionReqList != []:
+        AttackedLastTurn = True
+        return actionReqList
+    else:
+        AttackedLastTurn = False
+        return []
         
 
 def DesperateEscape():
-    return [ActionReq(gContext["playerID"], ActionType.MOVE_UP), ActionReq(gContext["playerID"], ActionType.MOVE_UP), 
-            ActionReq(gContext["playerID"], ActionType.MOVE_LEFT), ActionReq(gContext["playerID"], ActionType.MOVE_RIGHT)]
+    ret = [ActionReq(gContext["playerID"], randint(1, 4)) for i in range(10)]
+    return ret
 
 
 def MeetBunker(parsedMap: List[List[Map]], gridToCheck : tuple):
@@ -693,13 +744,11 @@ def AnalyseDanger(parsedMap: List[List[Map]], playerPosition: tuple, routes: Lis
     dangerousGrids_ = [] 
     for x in range(MapEdgeLength):
         for y in range(MapEdgeLength):
+            if (x,y) == MyBombLastTurn and AttackedLastTurn:
+                continue
             for obj in parsedMap[x][y].objs:
                 if obj.type == ObjType.Bomb:
                     dangerousGrids_ += FindZoneOfBomb(parsedMap, (x,y))
-
-    for obj in parsedMap[playerPosition[0]][playerPosition[1]].objs:
-        if obj.type == ObjType.Player and obj.property.player_id != gContext["playerID"]:
-            dangerousGrids_ += playerPosition
 
     # take invincible enemys into consideration
     if not PlaceBombCallFlag:
@@ -727,7 +776,7 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
     global Invincible
     global Shielded
     global accessableNow
-    global Player
+    global Myself
     Invincible = False
     Shielded = False
     parsedMap = [[Map() for i in range(MapEdgeLength)] for j in range(MapEdgeLength)]
@@ -741,7 +790,7 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
         parsedMap[grid.x][grid.y] = grid
         for obj in grid.objs:
             if obj.type == ObjType.Player and obj.property.player_id == gContext["playerID"] and myPosition is None:
-                Player = obj
+                Myself = obj
                 myPosition = (grid.x, grid.y)
                 MaxSpeed = obj.property.speed
                 HasGloves = obj.property.has_gloves
@@ -755,10 +804,12 @@ def ParseMap(map:List[Map]) -> (List[List[Map]], List[List[List[tuple]]], tuple,
                 else:
                     oldBombInfo = list(filter(lambda data : data[0] == obj.property.bomb_id, BombInfo))
                     newBombInfo.append((obj.property.bomb_id, grid.x, grid.y, oldBombInfo[0][3]))
-    if Player.property.invincible_time > 0:
+    if Myself.property.invincible_time > 0:
         Invincible = True
-    if Player.property.shield_time > 0:
+    if Myself.property.shield_time > 0:
         Shielded = True
+    if myPosition:
+        accessableNow[myPosition[0]][myPosition[1]] = 1
     newBombInfo.sort(key=lambda x:x[0])
     BombInfo = newBombInfo
     print(f"BombList: {BombInfo}")
